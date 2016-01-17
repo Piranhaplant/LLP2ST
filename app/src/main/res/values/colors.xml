@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#5e5c6b</color>
+    <color name="colorPrimaryDark">#424250</color>
+    <color name="colorAccent">#ff679b</color>
+    <color name="listViewTextLight">#a9a9a9</color>
+    <color name="listBgNormal">#00ffffff</color>
+    <color name="listBgSelected">#30a9a9a9</color>
+    <color name="loginError">#de4242</color>
+</resources>

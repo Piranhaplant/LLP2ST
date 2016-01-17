@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:key="pref_leadin"
+        android:title="@string/pref_leadin"
+        android:summary="@string/pref_leadin_summ"
+        android:defaultValue="2"
+        android:numeric="decimal" />
+    <EditTextPreference
+        android:key="pref_offset"
+        android:title="@string/pref_offset"
+        android:summary="@string/pref_offset_summ"
+        android:defaultValue="0.1"
+        android:numeric="decimal" />
+</PreferenceScreen>
