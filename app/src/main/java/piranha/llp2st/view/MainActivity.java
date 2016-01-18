@@ -32,8 +32,6 @@ import piranha.llp2st.exception.ErrorOr;
 
 public class MainActivity extends PlaySongActivity implements MainDataFragment.DataCallbacks {
 
-    public static Context ctx;
-
     private MainDataFragment dataFragment;
     private static final String FRAGMENT_DATA = "data";
 
@@ -51,7 +49,6 @@ public class MainActivity extends PlaySongActivity implements MainDataFragment.D
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ctx = this;
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
@@ -162,7 +159,7 @@ public class MainActivity extends PlaySongActivity implements MainDataFragment.D
                 startActivity(new Intent(this, LoginActivity.class));
                 return true;
             case R.id.action_logout:
-                Login.logout();
+                Login.logout(this);
                 refreshLogin();
                 return true;
         }

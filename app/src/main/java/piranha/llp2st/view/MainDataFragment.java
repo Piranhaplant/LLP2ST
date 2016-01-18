@@ -90,7 +90,7 @@ public class MainDataFragment extends Fragment {
 
         @Override
         protected void onPostExecute(ErrorOr<List<Category>> result) {
-            MainDataFragment.this.categories = result.data;
+            categories = result.data;
             if (callbacks != null) {
                 callbacks.CategoriesLoaded(result);
             }
@@ -101,7 +101,7 @@ public class MainDataFragment extends Fragment {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            Login.checkLogin();
+            Login.checkLogin(getContext());
             return null;
         }
 

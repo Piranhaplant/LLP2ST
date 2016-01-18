@@ -1,5 +1,6 @@
 package piranha.llp2st.data;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
@@ -14,7 +15,6 @@ import java.util.Date;
 
 import piranha.llp2st.Util;
 import piranha.llp2st.exception.LLPException;
-import piranha.llp2st.view.MainActivity;
 
 public final class Login {
 
@@ -23,7 +23,7 @@ public final class Login {
     public static String username;
     public static String token;
 
-    public static void login(String user, String password) throws JSONException, IOException, LLPException {
+    public static void login(String user, String password, Context context) throws JSONException, IOException, LLPException {
         JSONObject params = new JSONObject();
         params.put("username", user);
         params.put("password", hashPassword(password));
@@ -35,15 +35,15 @@ public final class Login {
         uid = String.valueOf(content.getInt("uid"));
         username = content.getString("username");
         token = content.getString("token");
-        saveLoginInfo();
+        saveLoginInfo(context);
     }
 
-    public static void logout() {
+    public static void logout(Context context) {
         cookie = null;
         uid = null;
         username = null;
         token = null;
-        saveLoginInfo();
+        saveLoginInfo(context);
     }
 
     public static boolean isLoggedIn() {
@@ -64,15 +64,15 @@ public final class Login {
         }
     }
 
-    public static void checkLogin() {
-        loadLoginInfo();
+    public static void checkLogin(Context context) {
+        loadLoginInfo(context);
         if (!isLoggedIn())
             return;
         try {
             String result = Util.download("https://m.tianyi9.com/API/checkLogin?" + getURLParams());
             JSONObject json = new JSONObject(result);
             if (!json.getBoolean("succeed"))
-                logout();
+                logout(context);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -94,16 +94,16 @@ public final class Login {
         return String.format("%064x", new java.math.BigInteger(1, digest));
     }
 
-    private static void loadLoginInfo() {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.ctx);
+    private static void loadLoginInfo(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         cookie = prefs.getString("login_cookie", null);
         uid = prefs.getString("login_uid", null);
         username = prefs.getString("login_username", null);
         token = prefs.getString("login_token", null);
     }
 
-    private static void saveLoginInfo() {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.ctx);
+    private static void saveLoginInfo(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor edit = prefs.edit();
         edit.putString("login_cookie", cookie);
         edit.putString("login_uid", uid);

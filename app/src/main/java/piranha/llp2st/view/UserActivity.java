@@ -2,6 +2,7 @@ package piranha.llp2st.view;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,6 +14,7 @@ public class UserActivity extends PlaySongActivity {
 
     public static final String EXTRA_USER_ID = "user_id";
     public static final String EXTRA_USER_NAME = "user_name";
+    private static final String FRAGMENT_DATA = "data";
 
     private MenuItem stopButton;
 
@@ -30,11 +32,14 @@ public class UserActivity extends PlaySongActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(userName);
 
-        SongListFragment fragment = new SongListFragment();
-        fragment.setSongSource(SongListSource.getUserSongListSource(userId));
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_content, fragment)
-                .commit();
+        FragmentManager fm = getSupportFragmentManager();
+        SongListFragment frag = (SongListFragment)fm.findFragmentByTag(FRAGMENT_DATA);
+
+        if (frag == null) {
+            frag = new SongListFragment();
+            frag.setSongSource(SongListSource.getUserSongListSource(userId));
+            fm.beginTransaction().replace(R.id.fragment_content, frag, FRAGMENT_DATA).commit();
+        }
     }
 
     @Override

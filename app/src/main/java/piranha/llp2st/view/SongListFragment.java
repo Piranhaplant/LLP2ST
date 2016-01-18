@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -42,8 +44,6 @@ public class SongListFragment extends Fragment {
     private View progressBar;
     private View noResults;
     private LinearLayoutManager rvLayoutManager;
-
-    public static final String KEY_SOURCE = "source";
 
     public void setSongSource(SongListSource source) {
         this.source = source;
@@ -100,9 +100,7 @@ public class SongListFragment extends Fragment {
         }
 
         protected void onPostExecute(List<Song> result) {
-            if (getActivity() == null) return;
-
-            rv.setAdapter(new SongRecyclerViewAdapter(getActivity(), result));
+            rv.setAdapter(new SongRecyclerViewAdapter(result));
             progressBar.setVisibility(View.GONE);
             rv.setVisibility(View.VISIBLE);
             if (result.size() == 0) {
@@ -122,18 +120,20 @@ public class SongListFragment extends Fragment {
         }
 
         protected void onPostExecute(List<Song> result) {
+            SongRecyclerViewAdapter oldAdapter = (SongRecyclerViewAdapter)rv.getAdapter();
             if (result != null) {
                 Parcelable state = rvLayoutManager.onSaveInstanceState();
 
-                SongRecyclerViewAdapter oldAdapter = (SongRecyclerViewAdapter)rv.getAdapter();
-                SongRecyclerViewAdapter newAdapter = new SongRecyclerViewAdapter(getActivity(), result);
-                newAdapter.expandedPosition = oldAdapter.expandedPosition;
+                SongRecyclerViewAdapter newAdapter = new SongRecyclerViewAdapter(result);
+                if (oldAdapter != null)
+                    newAdapter.expandedPosition = oldAdapter.expandedPosition;
 
                 rv.setAdapter(newAdapter);
                 rvLayoutManager.onRestoreInstanceState(state);
                 loadingMore = false;
             } else {
-                ((SongRecyclerViewAdapter)rv.getAdapter()).hideLoadingItem();
+                if (oldAdapter != null)
+                    oldAdapter.hideLoadingItem();
             }
         }
     }
@@ -183,10 +183,7 @@ public class SongListFragment extends Fragment {
             @Override
             public void StatusChanged(String id, Downloads.Status status) {
                 if (id.equals(curSong.id)) {
-                    Activity activity = getActivity();
-                    if (activity == null) return;
-
-                    activity.runOnUiThread(new Runnable() {
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
                             updateStatus(ViewHolder.this);
@@ -212,11 +209,7 @@ public class SongListFragment extends Fragment {
             notifyItemRemoved(mValues.size());
         }
 
-        public Song getValueAt(int position) {
-            return mValues.get(position);
-        }
-
-        public SongRecyclerViewAdapter(Context context, List<Song> items) {
+        public SongRecyclerViewAdapter(List<Song> items) {
             mValues = items;
         }
 
@@ -269,9 +262,9 @@ public class SongListFragment extends Fragment {
                 @Override
                 public void onClick(View view) {
                     if (Downloads.getStatus(s.id) == Downloads.Status.Done) {
-                        Downloads.showDeletePrompt(s.id, view.getContext());
+                        Downloads.showDeletePrompt(s.id, getContext());
                     } else {
-                        Util.runTaskMultiple(new Downloads.DownloadTask(getActivity()), s.id);
+                        Downloads.downloadAsync(s.id, getContext());
                     }
                 }
             });

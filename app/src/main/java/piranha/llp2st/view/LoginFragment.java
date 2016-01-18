@@ -1,5 +1,6 @@
 package piranha.llp2st.view;
 
+import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -32,6 +33,7 @@ public class LoginFragment extends Fragment {
 
     private String username;
     private String password;
+    private boolean loggingIn = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -50,12 +52,22 @@ public class LoginFragment extends Fragment {
         loginButton = v.findViewById(R.id.login_button);
         errorText = (TextView)v.findViewById(R.id.login_error);
 
-        getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        if (loggingIn) {
+            progressBar.setVisibility(View.VISIBLE);
+            loginButton.setVisibility(View.GONE);
+        }
+
+        if (getActivity() != null) {
+            getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        }
 
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new LoginTask().execute();
+                if (!loggingIn) {
+                    loggingIn = true;
+                    new LoginTask().execute();
+                }
             }
         });
         return v;
@@ -76,7 +88,7 @@ public class LoginFragment extends Fragment {
         @Override
         protected ErrorOr<Boolean> doInBackground(Void... voids) {
             try {
-                Login.login(username, password);
+                Login.login(username, password, getContext());
                 return new ErrorOr<>(true);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -91,8 +103,12 @@ public class LoginFragment extends Fragment {
                 errorText.setVisibility(View.VISIBLE);
                 errorText.setText("Error: " + result.error.getMessage());
             } else {
-                getActivity().finish();
+                Activity activity = getActivity();
+                if (activity != null) {
+                    activity.finish();
+                }
             }
+            loggingIn = false;
         }
     }
 }

@@ -117,7 +117,6 @@ public abstract class PlaySongActivity extends AppCompatActivity implements Audi
         }
     }
 
-
     static class PlayTask extends AsyncTask<String, Void, ErrorOr<Song>> {
 
         @Override

@@ -48,10 +48,6 @@ public class SongDetailDataFragment extends Fragment {
         new InfoTask().execute(id);
     }
 
-    public void Download(String id) {
-        Util.runTaskMultiple(new Downloads.DownloadTask(getActivity()), id);
-    }
-
     class InfoTask extends AsyncTask<String, Void, ErrorOr<Song>> {
 
         @Override
@@ -67,7 +63,9 @@ public class SongDetailDataFragment extends Fragment {
 
         @Override
         protected void onPostExecute(ErrorOr<Song> result) {
-            callbacks.InfoLoaded(result);
+            if (callbacks != null) {
+                callbacks.InfoLoaded(result);
+            }
         }
     }
 }

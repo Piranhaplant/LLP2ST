@@ -84,12 +84,4 @@ public final class Util {
         s.close();
         return out;
     }
-
-    public static <Params, Progress, Result> void runTaskMultiple(AsyncTask<Params, Progress, Result> task, Params... params) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
-        } else {
-            task.execute(params);
-        }
-    }
 }

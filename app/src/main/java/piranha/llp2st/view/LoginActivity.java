@@ -1,12 +1,16 @@
 package piranha.llp2st.view;
 
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import piranha.llp2st.R;
+import piranha.llp2st.data.DownloadsSongListSource;
 
 public class LoginActivity extends PlaySongActivity {
+
+    private static final String FRAGMENT_DATA = "data";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,10 +21,13 @@ public class LoginActivity extends PlaySongActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        LoginFragment fragment = new LoginFragment();
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_content, fragment)
-                .commit();
+        FragmentManager fm = getSupportFragmentManager();
+        LoginFragment frag = (LoginFragment)fm.findFragmentByTag(FRAGMENT_DATA);
+
+        if (frag == null) {
+            frag = new LoginFragment();
+            fm.beginTransaction().replace(R.id.fragment_content, frag, FRAGMENT_DATA).commit();
+        }
     }
 
     @Override

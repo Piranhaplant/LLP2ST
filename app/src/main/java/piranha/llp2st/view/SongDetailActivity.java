@@ -53,7 +53,7 @@ public class SongDetailActivity extends PlaySongActivity implements SongDetailDa
                 if (Downloads.getStatus(id) == Downloads.Status.Done) {
                     Downloads.showDeletePrompt(id, view.getContext());
                 } else {
-                    dataFragment.Download(id);
+                    Downloads.downloadAsync(id, view.getContext());
                 }
             }
         });

@@ -71,13 +71,13 @@ public final class Downloads {
         return s;
     }
 
-    public static void download(String id) throws JSONException, LLPException, IOException {
+    public static void download(String id, Context context) throws JSONException, LLPException, IOException {
         if (getStatus(id) != Status.None) return;
         setStatus(id, Status.InProgress);
 
         try {
             Song s = SongInfo.get(id, true);
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.ctx);
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
             double leadIn = Double.valueOf(prefs.getString("pref_leadin", "2"));
             double timingOffset = Double.valueOf(prefs.getString("pref_offset", "0.1"));
 
@@ -110,6 +110,21 @@ public final class Downloads {
         }
 
         setStatus(id, Downloads.Status.Done);
+    }
+
+    public static void downloadAsync(final String id, final Context context) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    download(id, context);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    ErrorOr<Boolean> err = ErrorOr.wrap(e);
+                    Toast.makeText(context, "Error downloading song: " + err.error.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            }
+        }).start();
     }
 
     public static void delete(String id) {
@@ -207,33 +222,5 @@ public final class Downloads {
 
         s.put("song_info", new JSONArray().put(new JSONObject().put("notes", notes)));
         return s;
-    }
-
-    public static class DownloadTask extends AsyncTask<String, Void, ErrorOr<Boolean>> {
-
-        private Activity activity;
-
-        public DownloadTask(Activity activity) {
-            super();
-            this.activity = activity;
-        }
-
-        @Override
-        protected ErrorOr<Boolean> doInBackground(String... id) {
-            try {
-                Downloads.download(id[0]);
-                return new ErrorOr<>(true);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                return ErrorOr.wrap(ex);
-            }
-        }
-
-        @Override
-        protected void onPostExecute(ErrorOr<Boolean> result) {
-            if (result.isError()) {
-                Toast.makeText(activity, "Error downloading song: " + result.error.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        }
     }
 }
