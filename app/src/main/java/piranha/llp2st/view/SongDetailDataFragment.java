@@ -2,21 +2,12 @@ package piranha.llp2st.view;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.widget.Toast;
 
-import org.json.JSONException;
-
-import java.io.IOException;
-
-import piranha.llp2st.Util;
-import piranha.llp2st.data.Downloads;
 import piranha.llp2st.data.Song;
 import piranha.llp2st.data.SongInfo;
 import piranha.llp2st.exception.ErrorOr;
-import piranha.llp2st.exception.LLPException;
 
 public class SongDetailDataFragment extends Fragment {
 

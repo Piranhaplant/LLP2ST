@@ -1,11 +1,5 @@
 package piranha.llp2st;
 
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.os.AsyncTask;
-import android.os.Build;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -15,7 +9,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Scanner;
 
-import piranha.llp2st.data.Downloads;
 import piranha.llp2st.data.Login;
 
 public final class Util {

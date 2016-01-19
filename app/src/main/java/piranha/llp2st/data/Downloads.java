@@ -1,11 +1,9 @@
 package piranha.llp2st.data;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
@@ -24,14 +22,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.jar.Manifest;
 
 import piranha.llp2st.R;
 import piranha.llp2st.Util;
 import piranha.llp2st.exception.ErrorOr;
 import piranha.llp2st.exception.LLPException;
 import piranha.llp2st.view.BaseActivity;
-import piranha.llp2st.view.MainActivity;
 
 public final class Downloads {
 

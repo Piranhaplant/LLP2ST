@@ -6,20 +6,16 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import piranha.llp2st.Util;
 import piranha.llp2st.data.Category;
-import piranha.llp2st.exception.ErrorOr;
-import piranha.llp2st.exception.InternalException;
-import piranha.llp2st.exception.LLPException;
 import piranha.llp2st.data.Login;
-import piranha.llp2st.exception.MyIOException;
+import piranha.llp2st.exception.ErrorOr;
+import piranha.llp2st.exception.LLPException;
 
 public class MainDataFragment extends Fragment {
 

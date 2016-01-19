@@ -21,7 +21,6 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;

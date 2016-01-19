@@ -12,16 +12,9 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import org.json.JSONException;
-
-import java.io.IOException;
-
 import piranha.llp2st.R;
-import piranha.llp2st.exception.ErrorOr;
-import piranha.llp2st.exception.InternalException;
-import piranha.llp2st.exception.LLPException;
 import piranha.llp2st.data.Login;
-import piranha.llp2st.exception.MyIOException;
+import piranha.llp2st.exception.ErrorOr;
 
 public class LoginFragment extends Fragment {
 
