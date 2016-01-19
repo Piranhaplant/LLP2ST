@@ -10,7 +10,7 @@ import android.view.MenuItem;
 import piranha.llp2st.R;
 import piranha.llp2st.data.SongListSource;
 
-public class UserActivity extends PlaySongActivity {
+public class UserActivity extends BaseActivity {
 
     public static final String EXTRA_USER_ID = "user_id";
     public static final String EXTRA_USER_NAME = "user_name";
@@ -69,7 +69,7 @@ public class UserActivity extends PlaySongActivity {
                 onBackPressed();
                 return true;
             case R.id.action_stop:
-                PlaySongActivity.Stop();
+                BaseActivity.Stop();
                 return true;
         }
         return super.onOptionsItemSelected(item);

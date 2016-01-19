@@ -62,6 +62,7 @@ public class DownloadsSongListSource extends SongListSource {
             latch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
+            return;
         }
 
         // All song info has been downloaded now, so we can put them into the list

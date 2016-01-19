@@ -5,7 +5,7 @@ import android.support.v7.widget.Toolbar;
 
 import piranha.llp2st.R;
 
-public class SettingsActivity extends PlaySongActivity {
+public class SettingsActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

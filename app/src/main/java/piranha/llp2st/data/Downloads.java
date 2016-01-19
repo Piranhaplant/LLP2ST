@@ -24,11 +24,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.jar.Manifest;
 
 import piranha.llp2st.R;
 import piranha.llp2st.Util;
 import piranha.llp2st.exception.ErrorOr;
 import piranha.llp2st.exception.LLPException;
+import piranha.llp2st.view.BaseActivity;
 import piranha.llp2st.view.MainActivity;
 
 public final class Downloads {
@@ -46,17 +48,22 @@ public final class Downloads {
     private static Map<String, Status> downloadStatus = new HashMap<>();
 
     static {
-        File dir = new File(Environment.getExternalStorageDirectory(), dataFilesDirectory);
-        File[] files = dir.listFiles();
-        if (files != null) {
-            for (File f : dir.listFiles()) {
-                // Example file name: ZDnsvUoyoaOjYU78.rs
-                String name = f.getName();
-                if (name.matches("^[0-9A-Za-z]{16}\\.rs$")) {
-                    downloadStatus.put(name.substring(0, 16), Status.Done);
+        BaseActivity.runWithPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE, new Runnable() {
+            @Override
+            public void run() {
+                File dir = new File(Environment.getExternalStorageDirectory(), dataFilesDirectory);
+                File[] files = dir.listFiles();
+                if (files != null) {
+                    for (File f : dir.listFiles()) {
+                        // Example file name: ZDnsvUoyoaOjYU78.rs
+                        String name = f.getName();
+                        if (name.matches("^[0-9A-Za-z]{16}\\.rs$")) {
+                            setStatus(name.substring(0, 16), Status.Done);
+                        }
+                    }
                 }
             }
-        }
+        });
     }
 
     public interface StatusChangedListener {
@@ -75,6 +82,9 @@ public final class Downloads {
         if (getStatus(id) != Status.None) return;
         setStatus(id, Status.InProgress);
 
+        android.util.Log.i("PERM", "Requesting permission...");
+        BaseActivity.requestPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        android.util.Log.i("PERM", "Got permission");
         try {
             Song s = SongInfo.get(id, true);
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -127,12 +137,17 @@ public final class Downloads {
         }).start();
     }
 
-    public static void delete(String id) {
-        File f = new File(Environment.getExternalStorageDirectory(), dataFilesDirectory + id + ".rs");
-        f.delete();
-        f = new File(Environment.getExternalStorageDirectory(), soundFilesDirectory + id + ".mp3");
-        f.delete();
-        setStatus(id, Status.None);
+    public static void delete(final String id) {
+        BaseActivity.runWithPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE, new Runnable() {
+            @Override
+            public void run() {
+                File f = new File(Environment.getExternalStorageDirectory(), dataFilesDirectory + id + ".rs");
+                f.delete();
+                f = new File(Environment.getExternalStorageDirectory(), soundFilesDirectory + id + ".mp3");
+                f.delete();
+                setStatus(id, Status.None);
+            }
+        });
     }
 
     public static List<String> getAllDownloads() {

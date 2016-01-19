@@ -16,13 +16,12 @@ import com.bumptech.glide.Glide;
 
 import mbanje.kurt.fabbutton.FabButton;
 import piranha.llp2st.R;
-import piranha.llp2st.Util;
 import piranha.llp2st.data.Downloads;
 import piranha.llp2st.data.Song;
 import piranha.llp2st.exception.ErrorOr;
 import piranha.llp2st.exception.LLPException;
 
-public class SongDetailActivity extends PlaySongActivity implements SongDetailDataFragment.DataCallbacks, Downloads.StatusChangedListener {
+public class SongDetailActivity extends BaseActivity implements SongDetailDataFragment.DataCallbacks, Downloads.StatusChangedListener {
 
     public static final String EXTRA_ID = "live_id";
 
@@ -62,10 +61,10 @@ public class SongDetailActivity extends PlaySongActivity implements SongDetailDa
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (PlaySongActivity.isPlaying()) {
-                    PlaySongActivity.Stop();
+                if (BaseActivity.isPlaying()) {
+                    BaseActivity.Stop();
                 } else {
-                    PlaySongActivity.Play(id);
+                    BaseActivity.Play(id);
                 }
             }
         });

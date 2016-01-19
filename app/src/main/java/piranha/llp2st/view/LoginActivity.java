@@ -6,9 +6,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import piranha.llp2st.R;
-import piranha.llp2st.data.DownloadsSongListSource;
 
-public class LoginActivity extends PlaySongActivity {
+public class LoginActivity extends BaseActivity {
 
     private static final String FRAGMENT_DATA = "data";
 

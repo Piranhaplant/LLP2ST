@@ -8,9 +8,8 @@ import android.view.MenuItem;
 
 import piranha.llp2st.R;
 import piranha.llp2st.data.DownloadsSongListSource;
-import piranha.llp2st.data.SongListSource;
 
-public class DownloadsActivity extends PlaySongActivity {
+public class DownloadsActivity extends BaseActivity {
 
     private static final String FRAGMENT_DATA = "data";
 
@@ -52,7 +51,7 @@ public class DownloadsActivity extends PlaySongActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_stop:
-                PlaySongActivity.Stop();
+                BaseActivity.Stop();
                 return true;
         }
         return super.onOptionsItemSelected(item);

@@ -1,10 +1,8 @@
 package piranha.llp2st.view;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -19,21 +17,15 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.List;
 
 import piranha.llp2st.R;
-import piranha.llp2st.Util;
 import piranha.llp2st.data.Downloads;
 import piranha.llp2st.data.Song;
 import piranha.llp2st.data.SongListSource;
-import piranha.llp2st.exception.ErrorOr;
 
 public class SongListFragment extends Fragment {
 
@@ -283,7 +275,7 @@ public class SongListFragment extends Fragment {
             holder.mPreviewSong.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    PlaySongActivity.Play(s.id);
+                    BaseActivity.Play(s.id);
                 }
             });
 

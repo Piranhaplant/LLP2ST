@@ -5,12 +5,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.view.MenuItem;
@@ -20,14 +21,18 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+
 import piranha.llp2st.R;
 import piranha.llp2st.data.Downloads;
-import piranha.llp2st.data.Login;
 import piranha.llp2st.data.Song;
 import piranha.llp2st.data.SongInfo;
 import piranha.llp2st.exception.ErrorOr;
 
-public abstract class PlaySongActivity extends AppCompatActivity implements AudioManager.OnAudioFocusChangeListener {
+public abstract class BaseActivity extends AppCompatActivity implements AudioManager.OnAudioFocusChangeListener {
 
     private static final int NOTIFICATION_ID = 1;
     private static final String EXTRA_AUDIO_SESSION = "audioSession";
@@ -35,9 +40,12 @@ public abstract class PlaySongActivity extends AppCompatActivity implements Audi
     private static final String ACTION_STOP = "stop";
 
     static MediaPlayer player;
-    static PlaySongActivity curActivity;
-    static PlaySongActivity audioFocusActivity;
+    static BaseActivity curActivity;
+    static BaseActivity audioFocusActivity;
     static boolean loadingSong = false;
+
+    static int curRequestCode = 1;
+    static Map<Integer, Runnable> permissionRunners = new HashMap<>();
 
     abstract void setStopVisible(boolean visible);
 
@@ -84,7 +92,8 @@ public abstract class PlaySongActivity extends AppCompatActivity implements Audi
 
     public static void Stop() {
         if (player != null) {
-            player.stop();
+            if (player.isPlaying())
+                player.stop();
             curActivity.setStopVisible(false);
             AudioManager audioManager = (AudioManager)curActivity.getSystemService(Context.AUDIO_SERVICE);
             audioManager.abandonAudioFocus(audioFocusActivity);
@@ -102,6 +111,41 @@ public abstract class PlaySongActivity extends AppCompatActivity implements Audi
         }
     }
 
+    public static void requestPermission(String permission) {
+        final CountDownLatch latch = new CountDownLatch(1);
+        runWithPermission(permission, new Runnable() {
+            @Override
+            public void run() {
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void runWithPermission(String permission, Runnable runnable) {
+        if (ActivityCompat.checkSelfPermission(curActivity, permission) == PackageManager.PERMISSION_GRANTED) {
+            runnable.run();
+        } else {
+            permissionRunners.put(curRequestCode, runnable);
+            ActivityCompat.requestPermissions(curActivity, new String[] { permission }, curRequestCode);
+            curRequestCode++;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (permissionRunners.containsKey(requestCode)) {
+            Runnable runnable = permissionRunners.get(requestCode);
+            permissionRunners.remove(requestCode);
+            runnable.run();
+        }
+    }
+
     public void onAudioFocusChange(int focusChange) {
         if (player == null) return;
 
@@ -110,7 +154,7 @@ public abstract class PlaySongActivity extends AppCompatActivity implements Audi
                 player.start();
         } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
             if (player.isPlaying())
-                player.stop();
+                Stop();
         } else {
             if (player.isPlaying())
                 player.pause();

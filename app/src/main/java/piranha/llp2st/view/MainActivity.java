@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -25,12 +24,11 @@ import java.util.List;
 
 import piranha.llp2st.R;
 import piranha.llp2st.data.Category;
-import piranha.llp2st.data.Downloads;
 import piranha.llp2st.data.Login;
 import piranha.llp2st.data.SongListSource;
 import piranha.llp2st.exception.ErrorOr;
 
-public class MainActivity extends PlaySongActivity implements MainDataFragment.DataCallbacks {
+public class MainActivity extends BaseActivity implements MainDataFragment.DataCallbacks {
 
     private MainDataFragment dataFragment;
     private static final String FRAGMENT_DATA = "data";
@@ -153,7 +151,7 @@ public class MainActivity extends PlaySongActivity implements MainDataFragment.D
                 startActivity(new Intent(this, DownloadsActivity.class));
                 return true;
             case R.id.action_stop:
-                PlaySongActivity.Stop();
+                BaseActivity.Stop();
                 return true;
             case R.id.action_login:
                 startActivity(new Intent(this, LoginActivity.class));
