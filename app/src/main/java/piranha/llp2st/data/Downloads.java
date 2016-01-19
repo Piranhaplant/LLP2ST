@@ -78,9 +78,7 @@ public final class Downloads {
         if (getStatus(id) != Status.None) return;
         setStatus(id, Status.InProgress);
 
-        android.util.Log.i("PERM", "Requesting permission...");
         BaseActivity.requestPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        android.util.Log.i("PERM", "Got permission");
         try {
             Song s = SongInfo.get(id, true);
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
