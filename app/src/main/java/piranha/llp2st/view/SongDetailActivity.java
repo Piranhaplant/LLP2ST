@@ -85,7 +85,7 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
 
     @Override
     public void StatusChanged(String id, Downloads.Status status) {
-        if (id.equals(SongDetailActivity.this.id)) {
+        if (id.equals(this.id)) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -126,6 +126,7 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
         Downloads.Status status = Downloads.getStatus(id);
         switch (status) {
             case None:
+                downloadButton.onProgressCompleted();
                 downloadButton.resetIcon();
                 break;
             case InProgress:

@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
 
@@ -124,8 +126,13 @@ public final class Downloads {
                     download(id, context);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    ErrorOr<Boolean> err = ErrorOr.wrap(e);
-                    Toast.makeText(context, "Error downloading song: " + err.error.getMessage(), Toast.LENGTH_LONG).show();
+                    final ErrorOr<Boolean> err = ErrorOr.wrap(e);
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(context, "Error downloading song: " + err.error.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
                 }
             }
         }).start();
