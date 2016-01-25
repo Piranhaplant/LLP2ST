@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.Scanner;
 
 import piranha.llp2st.data.Login;
+import piranha.llp2st.data.Song;
 
 public final class Util {
 
@@ -76,5 +77,13 @@ public final class Util {
         String out = new Scanner(s, "UTF-8").useDelimiter("\\A").next();
         s.close();
         return out;
+    }
+
+    public static String getPictureUrl(String url) {
+        if (url == null || url.equals("")) {
+            return "https://m.tianyi9.com/images/default_avatar.jpg";
+        } else {
+            return Song.UploadPath + url;
+        }
     }
 }

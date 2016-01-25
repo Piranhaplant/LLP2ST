@@ -90,7 +90,7 @@
             android:layout_height="wrap_content"
             android:text="@string/list_viewdetails"
             android:textAllCaps="true"
-            android:padding="10dp"
+            android:padding="@dimen/text_button_padding"
             android:textAlignment="center"
             android:background="?android:attr/selectableItemBackground"/>
 
@@ -101,7 +101,7 @@
             android:layout_height="wrap_content"
             android:text="@string/list_preview"
             android:textAllCaps="true"
-            android:padding="10dp"
+            android:padding="@dimen/text_button_padding"
             android:textAlignment="center"
             android:background="?android:attr/selectableItemBackground"/>
     </LinearLayout>

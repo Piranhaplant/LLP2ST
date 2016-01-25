@@ -10,12 +10,16 @@ import android.text.Html;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
 import mbanje.kurt.fabbutton.FabButton;
 import piranha.llp2st.R;
+import piranha.llp2st.Util;
+import piranha.llp2st.data.Comment;
+import piranha.llp2st.data.CommentList;
 import piranha.llp2st.data.Downloads;
 import piranha.llp2st.data.Song;
 import piranha.llp2st.exception.ErrorOr;
@@ -30,8 +34,16 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
 
     private String id;
     private boolean failed = false;
+    private ErrorOr<CommentList> comments;
+    private int commentsShown = 0;
+
     private FabButton downloadButton;
     private FabButton playButton;
+
+    private LinearLayout commentList;
+    private TextView commentMore;
+    private View commentProgress;
+    private View commentNone;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +80,16 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
                 }
             }
         });
+        commentList = (LinearLayout)findViewById(R.id.comment_list);
+        commentMore = (TextView)findViewById(R.id.comments_more);
+        commentProgress = findViewById(R.id.comment_progress);
+        commentNone = findViewById(R.id.comment_none);
+        commentMore.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                LoadMoreComments();
+            }
+        });
 
         Downloads.addListener(this);
         updateStatus();
@@ -81,6 +103,12 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
         }
 
         dataFragment.LoadInfo(id);
+        comments = dataFragment.GetComments();
+        if (comments == null) {
+            dataFragment.LoadComments(id);
+        } else {
+            ShowComments();
+        }
     }
 
     @Override
@@ -99,6 +127,7 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
     protected void onResume() {
         super.onResume();
         if (failed) {
+            comments = null;
             dataFragment.LoadInfo(id);
         }
     }
@@ -153,6 +182,7 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
         final ImageView imageView = (ImageView)findViewById(R.id.backdrop);
         final ImageView authorPicture = (ImageView)findViewById(R.id.detail_authorPicture);
 
+        findViewById(R.id.detail_area).setVisibility(View.VISIBLE);
         if (esong.isError()) {
             failed = true;
             collapsingToolbar.setTitle(getResources().getString(R.string.error_detail_title));
@@ -174,6 +204,8 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
             authorInfo.setText(esong.error.getMessage());
             return;
         }
+
+        findViewById(R.id.comment_area).setVisibility(View.VISIBLE);
         failed = false;
         downloadButton.setVisibility(View.VISIBLE);
         playButton.setVisibility(View.VISIBLE);
@@ -184,17 +216,17 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
         Glide.with(SongDetailActivity.this).load(Song.UploadPath + song.pictureUrl).centerCrop().into(imageView);
 
         songInfo.setText(Html.fromHtml(
-                "<b>Title:</b> " + song.name + "<br/>" +
-                "<b>Artist:</b> " + song.artist + "<br/>" +
-                "<b>Level:</b> " + song.difficulty + "<br/>" +
-                "<b>Played:</b> " + song.clickCount + "<br/>" +
-                "<b>Description:</b> " + song.description));
+            "<b>Title:</b> " + song.name + "<br/>" +
+            "<b>Artist:</b> " + song.artist + "<br/>" +
+            "<b>Level:</b> " + song.difficulty + "<br/>" +
+            "<b>Played:</b> " + song.clickCount + "<br/>" +
+            "<b>Description:</b> " + song.description));
 
         authorInfo.setText(Html.fromHtml(
                 "<b>Author:</b> " + song.uploaderName + "<br/>" +
-                "<b>Post count:</b> " + song.uploaderPostCount));
+                        "<b>Post count:</b> " + song.uploaderPostCount));
 
-        Glide.with(SongDetailActivity.this).load(Song.UploadPath + song.uploaderPictureUrl).centerCrop().into(authorPicture);
+        Glide.with(SongDetailActivity.this).load(Util.getPictureUrl(song.uploaderPictureUrl)).centerCrop().into(authorPicture);
 
         userCard.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -206,5 +238,63 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
                 context.startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public void CommentsLoaded(ErrorOr<CommentList> comments) {
+        this.comments = comments;
+        ShowComments();
+    }
+
+    private void ShowComments() {
+        if (comments == null) return;
+
+        commentProgress.setVisibility(View.GONE);
+
+        if (comments.isError()) {
+            commentMore.setVisibility(View.VISIBLE);
+            commentMore.setText("Error loading comments: " + comments.error.getMessage());
+            return;
+        }
+
+        CommentList c = comments.data;
+        commentMore.setText(R.string.detail_loadmore);
+        commentMore.setVisibility(c.comments.size() < c.availableCount ? View.VISIBLE : View.GONE);
+        commentNone.setVisibility(c.comments.size() == 0 ? View.VISIBLE : View.GONE);
+
+        for (int i = commentsShown; i < c.comments.size(); i++) {
+            CreateCommentView(c.comments.get(i));
+        }
+
+        commentsShown = c.comments.size();
+    }
+
+    private void CreateCommentView(final Comment comment) {
+        View v = View.inflate(this, R.layout.comment, null);
+        TextView content = (TextView)v.findViewById(R.id.comment_text);
+        TextView header = (TextView)v.findViewById(R.id.comment_header);
+        ImageView picture = (ImageView)v.findViewById(R.id.comment_picture);
+
+        content.setText(comment.content);
+        header.setText(comment.userName + " at " + comment.date);
+        Glide.with(this).load(Util.getPictureUrl(comment.userPictureUrl)).centerCrop().into(picture);
+        v.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Context context = view.getContext();
+                Intent intent = new Intent(context, UserActivity.class);
+                intent.putExtra(UserActivity.EXTRA_USER_ID, comment.userId);
+                intent.putExtra(UserActivity.EXTRA_USER_NAME, comment.userName);
+                context.startActivity(intent);
+            }
+        });
+
+        commentList.addView(v);
+    }
+
+    private void LoadMoreComments() {
+        dataFragment.LoadMoreComments();
+        commentProgress.setVisibility(View.VISIBLE);
+        commentMore.setVisibility(View.GONE);
     }
 }
