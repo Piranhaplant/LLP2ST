@@ -78,12 +78,4 @@ public final class Util {
         s.close();
         return out;
     }
-
-    public static String getPictureUrl(String url) {
-        if (url == null || url.equals("")) {
-            return "https://m.tianyi9.com/images/default_avatar.jpg";
-        } else {
-            return Song.UploadPath + url;
-        }
-    }
 }

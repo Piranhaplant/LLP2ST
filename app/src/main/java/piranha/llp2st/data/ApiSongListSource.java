@@ -43,6 +43,11 @@ public class ApiSongListSource extends SongListSource {
         return title;
     }
 
+    @Override
+    public SongListSource clone() {
+        return new ApiSongListSource(apiUrl, title);
+    }
+
     private void loadSongs() {
         String url = apiUrl + "&offset=" + songs.size();
         if (Login.isLoggedIn()) {

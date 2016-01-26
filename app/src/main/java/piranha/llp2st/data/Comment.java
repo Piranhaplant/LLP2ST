@@ -23,7 +23,11 @@ public class Comment {
         JSONObject user = json.optJSONObject("user");
         if (user != null) {
             userName = user.optString("username");
-            userPictureUrl = user.optString("avatar_path");
+            if (user.isNull("avatar_path")) {
+                userPictureUrl = null;
+            } else {
+                userPictureUrl = user.optString("avatar_path", "");
+            }
             userId = user.optInt("id");
         }
     }

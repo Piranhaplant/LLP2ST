@@ -37,6 +37,11 @@ public class DownloadsSongListSource extends SongListSource {
         return "";
     }
 
+    @Override
+    public SongListSource clone() {
+        return new DownloadsSongListSource();
+    }
+
     private void loadSongs() {
         int start = songs.size();
         int count = Math.min(SONG_LOAD_SIZE, ids.size() - start);

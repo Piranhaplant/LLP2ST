@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -30,17 +31,23 @@ import piranha.llp2st.data.SongListSource;
 public class SongListFragment extends Fragment {
 
     private SongListSource source;
-    private boolean loadingMore = false;
+    private enum LoadStatus {
+        None,
+        LoadingMore,
+        Refreshing
+    }
+    private LoadStatus loadStatus = LoadStatus.None;
 
     private RecyclerView rv;
     private View progressBar;
     private View noResults;
     private LinearLayoutManager rvLayoutManager;
+    private SwipeRefreshLayout swipeRefresh;
 
     public void setSongSource(SongListSource source) {
         this.source = source;
         if (rv != null) {
-            loadingMore = false;
+            loadStatus = LoadStatus.None;
             progressBar.setVisibility(View.VISIBLE);
             noResults.setVisibility(View.GONE);
             rv.setVisibility(View.GONE);
@@ -70,14 +77,24 @@ public class SongListFragment extends Fragment {
         rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                if (!loadingMore && rvLayoutManager.getChildCount() + rvLayoutManager.findFirstVisibleItemPosition() >= rvLayoutManager.getItemCount() - 2) {
-                    loadingMore = true;
+                if (loadStatus == LoadStatus.None && rvLayoutManager.getChildCount() + rvLayoutManager.findFirstVisibleItemPosition() >= rvLayoutManager.getItemCount() - 2) {
+                    loadStatus = LoadStatus.LoadingMore;
                     ((SongRecyclerViewAdapter)rv.getAdapter()).showLoadingItem();
                     new LoadMoreTask().execute();
                 }
             }
         });
         rv.setItemAnimator(null);
+
+        swipeRefresh = (SwipeRefreshLayout)v.findViewById(R.id.swipeRefresh);
+        swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadStatus = LoadStatus.Refreshing;
+                source = source.clone();
+                new SongListTask().execute();
+            }
+        });
 
         new SongListTask().execute();
 
@@ -94,10 +111,12 @@ public class SongListFragment extends Fragment {
         protected void onPostExecute(List<Song> result) {
             rv.setAdapter(new SongRecyclerViewAdapter(result));
             progressBar.setVisibility(View.GONE);
-            rv.setVisibility(View.VISIBLE);
+            swipeRefresh.setVisibility(View.VISIBLE);
             if (result.size() == 0) {
                 noResults.setVisibility(View.VISIBLE);
             }
+            swipeRefresh.setRefreshing(false);
+            loadStatus = LoadStatus.None;
         }
     }
 
@@ -112,6 +131,9 @@ public class SongListFragment extends Fragment {
         }
 
         protected void onPostExecute(List<Song> result) {
+            // The loading could be interrupted be refreshing, in which case do nothing
+            if (loadStatus != LoadStatus.LoadingMore)
+                return;
             SongRecyclerViewAdapter oldAdapter = (SongRecyclerViewAdapter)rv.getAdapter();
             if (result != null) {
                 Parcelable state = rvLayoutManager.onSaveInstanceState();
@@ -122,7 +144,7 @@ public class SongListFragment extends Fragment {
 
                 rv.setAdapter(newAdapter);
                 rvLayoutManager.onRestoreInstanceState(state);
-                loadingMore = false;
+                loadStatus = LoadStatus.None;
             } else {
                 if (oldAdapter != null)
                     oldAdapter.hideLoadingItem();

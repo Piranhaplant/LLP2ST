@@ -226,7 +226,7 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
                 "<b>Author:</b> " + song.uploaderName + "<br/>" +
                         "<b>Post count:</b> " + song.uploaderPostCount));
 
-        Glide.with(SongDetailActivity.this).load(Util.getPictureUrl(song.uploaderPictureUrl)).centerCrop().into(authorPicture);
+        Glide.with(SongDetailActivity.this).load(getPictureUrl(song.uploaderPictureUrl)).centerCrop().into(authorPicture);
 
         userCard.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -277,7 +277,7 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
 
         content.setText(comment.content);
         header.setText(comment.userName + " at " + comment.date);
-        Glide.with(this).load(Util.getPictureUrl(comment.userPictureUrl)).centerCrop().into(picture);
+        Glide.with(this).load(getPictureUrl(comment.userPictureUrl)).centerCrop().into(picture);
         v.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -296,5 +296,14 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
         dataFragment.LoadMoreComments();
         commentProgress.setVisibility(View.VISIBLE);
         commentMore.setVisibility(View.GONE);
+    }
+
+
+    public static String getPictureUrl(String url) {
+        if (url == null || url.equals("")) {
+            return "https://m.tianyi9.com/images/default_avatar.jpg";
+        } else {
+            return Song.UploadPath + url;
+        }
     }
 }

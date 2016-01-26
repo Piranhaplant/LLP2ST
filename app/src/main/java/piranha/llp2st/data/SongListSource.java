@@ -13,6 +13,7 @@ public abstract class SongListSource {
      */
     public abstract boolean loadMore();
     public abstract String getTitle();
+    public abstract SongListSource clone();
 
     public static SongListSource getNewSongListSource() {
         return new ApiSongListSource("https://m.tianyi9.com/API/getlivelist?type=public", "New");
