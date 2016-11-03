@@ -18,7 +18,6 @@ public class SongDetailDataFragment extends Fragment {
     }
 
     private DataCallbacks callbacks;
-    private CommentList comments;
     private ErrorOr<CommentList> errComments;
 
     @Override
@@ -78,6 +77,7 @@ public class SongDetailDataFragment extends Fragment {
 
         @Override
         protected ErrorOr<CommentList> doInBackground(String... strings) {
+            CommentList comments = null;
             if (strings.length >= 1) {
                 comments = new CommentList(strings[0]);
             }

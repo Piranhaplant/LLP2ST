@@ -88,7 +88,7 @@ public final class Downloads {
             double timingOffset = Double.valueOf(prefs.getString("pref_offset", "0.1"));
 
             JSONObject map = new JSONObject(Util.download(Song.UploadPath + s.mapUrl));
-            JSONObject sifTrainMap = convertToSifTrain(map, s.name, leadIn, timingOffset);
+            JSONObject sifTrainMap = convertToSifTrain(map, s.name, s.difficulty, leadIn, timingOffset);
 
             File f = new File(Environment.getExternalStorageDirectory(), dataFilesDirectory + id + ".rs");
             f.getParentFile().mkdirs();
@@ -136,6 +136,22 @@ public final class Downloads {
                 }
             }
         }).start();
+    }
+
+    public static void redownload(String id, Context context) throws JSONException, LLPException, IOException {
+        Song s = SongInfo.get(id, true);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        double leadIn = Double.valueOf(prefs.getString("pref_leadin", "2"));
+        double timingOffset = Double.valueOf(prefs.getString("pref_offset", "0.1"));
+
+        JSONObject map = new JSONObject(Util.download(Song.UploadPath + s.mapUrl));
+        JSONObject sifTrainMap = convertToSifTrain(map, s.name, s.difficulty, leadIn, timingOffset);
+
+        File f = new File(Environment.getExternalStorageDirectory(), dataFilesDirectory + id + ".rs");
+        f.getParentFile().mkdirs();
+        OutputStreamWriter o = new OutputStreamWriter(new FileOutputStream(f, false));
+        o.write(sifTrainMap.toString());
+        o.close();
     }
 
     public static void delete(final String id) {
@@ -204,11 +220,15 @@ public final class Downloads {
         }
     }
 
-    private static JSONObject convertToSifTrain(JSONObject map, String name, double leadIn, double timeOffset) throws JSONException {
+    private static JSONObject convertToSifTrain(JSONObject map, String name, int difficultyNum, double leadIn, double timeOffset) throws JSONException {
         JSONObject s = new JSONObject();
         s.put("song_name", name);
         s.put("difficulty", 4);
         s.put("lead_in", leadIn);
+
+        // Debug stuff
+        //s.put("song_name", "LLP/" + name);
+        //s.put("difficulty_num", difficultyNum);
 
         JSONArray notes = new JSONArray();
         JSONArray lanes = map.getJSONArray("lane");

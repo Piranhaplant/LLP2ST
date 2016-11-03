@@ -28,7 +28,11 @@ public final class SongInfo {
         if (Login.isLoggedIn()) {
             url += "&" + Login.getURLParams();
         }
-        JSONObject j = new JSONObject(Util.download(url));
+        String text = Util.download(url);
+        if (text.equals("Not found")) {
+            throw new LLPException("Live not found", -1);
+        }
+        JSONObject j = new JSONObject(text);
         LLPException.ThrowIfError(j);
         j = j.getJSONObject("content");
         return set(j, s);

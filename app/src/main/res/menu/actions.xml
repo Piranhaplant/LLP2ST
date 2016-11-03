@@ -29,6 +29,17 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_redownload"
+        android:title="@string/menu_redownload"
+        app:showAsAction="never"
+        android:visible="false" />
+
+    <item
+        android:id="@+id/action_url"
+        android:title="@string/menu_url"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_login"
         android:title="@string/menu_login"
         app:showAsAction="never"

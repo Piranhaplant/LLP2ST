@@ -223,18 +223,18 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
             "<b>Description:</b> " + song.description));
 
         authorInfo.setText(Html.fromHtml(
-                "<b>Author:</b> " + song.uploaderName + "<br/>" +
-                        "<b>Post count:</b> " + song.uploaderPostCount));
+                "<b>Author:</b> " + song.user.name + "<br/>" +
+                        "<b>Post count:</b> " + song.user.posts));
 
-        Glide.with(SongDetailActivity.this).load(getPictureUrl(song.uploaderPictureUrl)).centerCrop().into(authorPicture);
+        Glide.with(SongDetailActivity.this).load(getPictureUrl(song.user.avatar)).centerCrop().into(authorPicture);
 
         userCard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Context context = view.getContext();
                 Intent intent = new Intent(context, UserActivity.class);
-                intent.putExtra(UserActivity.EXTRA_USER_ID, song.uploaderId);
-                intent.putExtra(UserActivity.EXTRA_USER_NAME, song.uploaderName);
+                intent.putExtra(UserActivity.EXTRA_USER_ID, song.user.id);
+                intent.putExtra(UserActivity.EXTRA_USER_NAME, song.user.name);
                 context.startActivity(intent);
             }
         });
@@ -276,15 +276,15 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
         ImageView picture = (ImageView)v.findViewById(R.id.comment_picture);
 
         content.setText(comment.content);
-        header.setText(comment.userName + " at " + comment.date);
-        Glide.with(this).load(getPictureUrl(comment.userPictureUrl)).centerCrop().into(picture);
+        header.setText(comment.user.name + " at " + comment.date);
+        Glide.with(this).load(getPictureUrl(comment.user.avatar)).centerCrop().into(picture);
         v.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Context context = view.getContext();
                 Intent intent = new Intent(context, UserActivity.class);
-                intent.putExtra(UserActivity.EXTRA_USER_ID, comment.userId);
-                intent.putExtra(UserActivity.EXTRA_USER_NAME, comment.userName);
+                intent.putExtra(UserActivity.EXTRA_USER_ID, comment.user.id);
+                intent.putExtra(UserActivity.EXTRA_USER_NAME, comment.user.name);
                 context.startActivity(intent);
             }
         });

@@ -14,6 +14,11 @@ public class LLPException extends Exception {
         errcode = json.optInt("errcode");
     }
 
+    public LLPException(String message, int errcode) {
+        this.message = message;
+        this.errcode = errcode;
+    }
+
     @Override
     public String getMessage() {
         return message;

@@ -1,20 +1,28 @@
 package piranha.llp2st.view;
 
+import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.UrlQuerySanitizer;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,6 +32,7 @@ import java.util.List;
 
 import piranha.llp2st.R;
 import piranha.llp2st.data.Category;
+import piranha.llp2st.data.Downloads;
 import piranha.llp2st.data.Login;
 import piranha.llp2st.data.SongListSource;
 import piranha.llp2st.exception.ErrorOr;
@@ -160,6 +169,12 @@ public class MainActivity extends BaseActivity implements MainDataFragment.DataC
                 Login.logout(this);
                 refreshLogin();
                 return true;
+            case R.id.action_redownload:
+                redownload();
+                return true;
+            case R.id.action_url:
+                showUrlDialog();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -178,6 +193,89 @@ public class MainActivity extends BaseActivity implements MainDataFragment.DataC
         progress.setVisibility(View.VISIBLE);
         errorText.setVisibility(View.GONE);
         dataFragment.LoadCategories();
+    }
+
+    private void redownload() {
+        final List<String> ids = Downloads.getAllDownloads();
+        final ProgressDialog dialog = new ProgressDialog(this);
+        dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        dialog.setIndeterminate(false);
+        dialog.setMessage("Redownloading data files");
+        dialog.setMax(ids.size());
+        dialog.show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (String id : ids) {
+                    try {
+                        Downloads.redownload(id, MainActivity.this);
+                    } catch (Exception e) {
+                        android.util.Log.i("Failed", id);
+                        e.printStackTrace();
+                        final ErrorOr<Boolean> err = ErrorOr.wrap(e);
+                    }
+                    dialog.incrementProgressBy(1);
+                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dialog.hide();
+                    }
+                });
+            }
+        }).start();
+    }
+
+    private void showUrlDialog() {
+        final EditText urlText = new EditText(this);
+        urlText.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
+
+        new AlertDialog.Builder(this)
+            .setTitle("Enter URL or Live ID")
+            .setView(urlText)
+            .setPositiveButton("Open", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int button) {
+                    openUrlOrId(urlText.getText().toString());
+                }
+            })
+            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int button) {
+                }
+            })
+            .show();
+    }
+
+    private void openUrlOrId(String urlOrId) {
+        String songId = null;
+        Integer userId = null;
+        if (urlOrId.matches("^[0-9A-Za-z]{16}$")) {
+            songId = urlOrId;
+        } else {
+            UrlQuerySanitizer sanitizer = new UrlQuerySanitizer(urlOrId);
+            songId = sanitizer.getValue("live_id");
+            if (songId != null && !songId.matches("^[0-9A-Za-z]{16}$")) {
+                songId = null;
+            }
+            if (songId == null) {
+                try {
+                    userId = Integer.parseInt(sanitizer.getValue("uid"));
+                    if (userId < 0) {
+                        userId = null;
+                    }
+                } catch (Exception e) { }
+            }
+        }
+        if (songId != null) {
+            Intent intent = new Intent(this, SongDetailActivity.class);
+            intent.putExtra(SongDetailActivity.EXTRA_ID, songId);
+            startActivity(intent);
+        } else if (userId != null) {
+            Intent intent = new Intent(this, UserActivity.class);
+            intent.putExtra(UserActivity.EXTRA_USER_ID, userId);
+            startActivity(intent);
+        } else {
+            Toast.makeText(this, "Invalid URL/ID entered.", Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override

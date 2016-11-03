@@ -25,11 +25,8 @@ public class Song {
     public String pictureUrl;
     public String mapUrl;
     public String audioUrl;
-
-    public String uploaderName;
-    public String uploaderPictureUrl;
-    public int uploaderId;
-    public int uploaderPostCount;
+    // Will only have name, avatar, id, and posts
+    public User user;
 
     public Song() { }
     public Song(JSONObject j) {
@@ -51,12 +48,6 @@ public class Song {
         mapUrl = j.optString("map_path");
         audioUrl = j.optString("bgm_path");
 
-        JSONObject uploader = j.optJSONObject("upload_user");
-        if (uploader != null) {
-            uploaderName = uploader.optString("username");
-            uploaderPictureUrl = uploader.optString("avatar_path");
-            uploaderId = uploader.optInt("id");
-            uploaderPostCount = uploader.optInt("post_count");
-        }
+        user = new User(j.optJSONObject("upload_user"));
     }
 }

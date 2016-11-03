@@ -7,10 +7,8 @@ public class Comment {
     public String content;
     public String date;
     public int id;
-
-    public String userName;
-    public String userPictureUrl;
-    public int userId;
+    // Will only have name, avatar, and id
+    public User user;
 
     public Comment() { }
 
@@ -19,16 +17,6 @@ public class Comment {
         date = json.optString("comment_date");
         date = date.replace("T", " ");
         id = json.optInt("id");
-
-        JSONObject user = json.optJSONObject("user");
-        if (user != null) {
-            userName = user.optString("username");
-            if (user.isNull("avatar_path")) {
-                userPictureUrl = null;
-            } else {
-                userPictureUrl = user.optString("avatar_path", "");
-            }
-            userId = user.optInt("id");
-        }
+        user = new User(json.optJSONObject("user"));
     }
 }

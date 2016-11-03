@@ -30,6 +30,8 @@
     <string name="menu_random">Random song</string>
     <string name="menu_login">Login</string>
     <string name="menu_logout">Logout</string>
+    <string name="menu_redownload">Redownload beatmaps</string>
+    <string name="menu_url">Open URL/ID</string>
 
     <string name="list_viewdetails">Details</string>
     <string name="list_preview">Preview</string>

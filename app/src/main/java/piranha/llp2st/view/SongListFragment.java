@@ -269,6 +269,8 @@ public class SongListFragment extends Fragment {
                         notifyItemChanged(prevPosition);
                     }
                     notifyItemChanged(expandedPosition);
+                    // Does not work reliably for some reason
+                    //rvLayoutManager.scrollToPosition(expandedPosition);
                 }
             });
 
