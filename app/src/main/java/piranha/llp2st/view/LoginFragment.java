@@ -59,7 +59,7 @@ public class LoginFragment extends Fragment {
             public void onClick(View view) {
                 if (!loggingIn) {
                     loggingIn = true;
-                    new LoginTask().execute();
+                    new LoginTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 }
             }
         });

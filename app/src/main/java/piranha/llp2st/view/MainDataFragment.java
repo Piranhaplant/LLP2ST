@@ -50,15 +50,15 @@ public class MainDataFragment extends Fragment {
 
     public void LoadCategories() {
         if (categories == null) {
-            new CategoryTask().execute();
-            new LoginTask().execute();
+            new CategoryTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            new LoginTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else if (callbacks != null) {
             callbacks.CategoriesLoaded(new ErrorOr<>(categories));
         }
     }
 
     public void LoadRandomSong() {
-        new RandomTask().execute();
+        new RandomTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     class CategoryTask extends AsyncTask<Void, Void, ErrorOr<List<Category>>> {

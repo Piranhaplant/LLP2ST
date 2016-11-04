@@ -41,7 +41,7 @@ public class UserDataFragment extends Fragment {
     }
 
     public void LoadUser(int id) {
-        new UserTask().execute(id);
+        new UserTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, id);
     }
 
     public ErrorOr<User> GetUser() {

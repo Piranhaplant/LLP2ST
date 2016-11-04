@@ -24,7 +24,7 @@ public class User {
         } else {
             avatar = json.optString("avatar_path");
         }
-        comments = json.optInt("total_comments");
+        comments = json.optInt("total_comment");
         posts = json.optInt("post_count");
         clicks = json.optInt("total_click");
         location = json.optString("location");

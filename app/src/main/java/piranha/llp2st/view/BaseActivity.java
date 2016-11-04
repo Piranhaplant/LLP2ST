@@ -86,7 +86,7 @@ public abstract class BaseActivity extends AppCompatActivity implements AudioMan
         } else {
             player.reset();
         }
-        new PlayTask().execute(id);
+        new PlayTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, id);
     }
 
     public static void Stop() {

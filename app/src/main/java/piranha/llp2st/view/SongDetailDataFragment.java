@@ -18,6 +18,7 @@ public class SongDetailDataFragment extends Fragment {
     }
 
     private DataCallbacks callbacks;
+    CommentList comments;
     private ErrorOr<CommentList> errComments;
 
     @Override
@@ -39,17 +40,17 @@ public class SongDetailDataFragment extends Fragment {
     }
 
     public void LoadInfo(String id) {
-        new InfoTask().execute(id);
+        new InfoTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, id);
     }
 
     public ErrorOr<CommentList> GetComments() {
         return errComments;
     }
     public void LoadComments(String id) {
-        new CommentTask().execute(id);
+        new CommentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, id);
     }
     public void LoadMoreComments() {
-        new CommentTask().execute();
+        new CommentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     class InfoTask extends AsyncTask<String, Void, ErrorOr<Song>> {
@@ -77,7 +78,6 @@ public class SongDetailDataFragment extends Fragment {
 
         @Override
         protected ErrorOr<CommentList> doInBackground(String... strings) {
-            CommentList comments = null;
             if (strings.length >= 1) {
                 comments = new CommentList(strings[0]);
             }

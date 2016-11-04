@@ -30,6 +30,12 @@ import piranha.llp2st.data.SongListSource;
 
 public class SongListFragment extends Fragment {
 
+    public interface Callbacks {
+        void TopViewLoaded();
+        boolean Refresh();
+    }
+    private Callbacks callbacks;
+
     private SongListSource source;
     private enum LoadStatus {
         None,
@@ -44,6 +50,11 @@ public class SongListFragment extends Fragment {
     private LinearLayoutManager rvLayoutManager;
     private SwipeRefreshLayout swipeRefresh;
 
+    private int topViewResource = -1;
+    private View topView;
+    private boolean waitingForCallbackRefresh;
+    private boolean callbackRefreshDone;
+
     public void setSongSource(SongListSource source) {
         this.source = source;
         if (rv != null) {
@@ -51,11 +62,26 @@ public class SongListFragment extends Fragment {
             progressBar.setVisibility(View.VISIBLE);
             noResults.setVisibility(View.GONE);
             rv.setVisibility(View.GONE);
-            new SongListTask().execute();
+            new SongListTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
     }
     public SongListSource getSongSource() {
         return source;
+    }
+
+    public void setTopView(int resource) {
+        topViewResource = resource;
+    }
+
+    public View getTopView() {
+        return topView;
+    }
+
+    public void refreshDone() {
+        callbackRefreshDone = true;
+        if (loadStatus != LoadStatus.Refreshing) {
+            swipeRefresh.setRefreshing(false);
+        }
     }
 
     @Override
@@ -68,6 +94,12 @@ public class SongListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_song_list, container, false);
+        if (topViewResource >= 0) {
+            topView = inflater.inflate(topViewResource, null);
+            if (callbacks != null) {
+                callbacks.TopViewLoaded();
+            }
+        }
         progressBar = v.findViewById(R.id.songListProgress);
         noResults = v.findViewById(R.id.noResults);
 
@@ -80,7 +112,7 @@ public class SongListFragment extends Fragment {
                 if (loadStatus == LoadStatus.None && rvLayoutManager.getChildCount() + rvLayoutManager.findFirstVisibleItemPosition() >= rvLayoutManager.getItemCount() - 2) {
                     loadStatus = LoadStatus.LoadingMore;
                     ((SongRecyclerViewAdapter)rv.getAdapter()).showLoadingItem();
-                    new LoadMoreTask().execute();
+                    new LoadMoreTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 }
             }
         });
@@ -92,13 +124,32 @@ public class SongListFragment extends Fragment {
             public void onRefresh() {
                 loadStatus = LoadStatus.Refreshing;
                 source = source.clone();
-                new SongListTask().execute();
+                new SongListTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                waitingForCallbackRefresh = false;
+                callbackRefreshDone = false;
+                if (callbacks != null) {
+                    waitingForCallbackRefresh = callbacks.Refresh();
+                }
             }
         });
 
-        new SongListTask().execute();
+        new SongListTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
         return v;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof Callbacks) {
+            callbacks = (Callbacks)context;
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        callbacks = null;
     }
 
     class SongListTask extends AsyncTask<Void, Void, List<Song>> {
@@ -115,7 +166,9 @@ public class SongListFragment extends Fragment {
             if (result.size() == 0) {
                 noResults.setVisibility(View.VISIBLE);
             }
-            swipeRefresh.setRefreshing(false);
+            if (!waitingForCallbackRefresh || callbackRefreshDone) {
+                swipeRefresh.setRefreshing(false);
+            }
             loadStatus = LoadStatus.None;
         }
     }
@@ -153,14 +206,16 @@ public class SongListFragment extends Fragment {
     }
 
     public class SongRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-        private static final int VIEW_ITEM = 0;
+        private static final int VIEW_SONG = 0;
         private static final int VIEW_PROG = 1;
+        private static final int VIEW_TOP = 2;
 
         private List<Song> mValues;
         public int expandedPosition = -1;
         public boolean loadingItemVisible;
+        public int topViewOffset = 0;
 
-        public class ViewHolder extends RecyclerView.ViewHolder implements Downloads.StatusChangedListener {
+        public class SongViewHolder extends RecyclerView.ViewHolder implements Downloads.StatusChangedListener {
             public final View mView;
             public final ImageView mImageView;
             public final TextView mTitleText;
@@ -174,7 +229,7 @@ public class SongListFragment extends Fragment {
             public final View mMemberOnly;
             public Song curSong;
 
-            public ViewHolder(View view) {
+            public SongViewHolder(View view) {
                 super(view);
                 mView = view;
                 mImageView = (ImageView)view.findViewById(R.id.avatar);
@@ -200,15 +255,15 @@ public class SongListFragment extends Fragment {
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
-                            updateStatus(ViewHolder.this);
+                            updateStatus(SongViewHolder.this);
                         }
                     });
                 }
             }
         }
 
-        public class ProgViewHolder extends RecyclerView.ViewHolder {
-            public ProgViewHolder(View view) {
+        public class OtherViewHolder extends RecyclerView.ViewHolder {
+            public OtherViewHolder(View view) {
                 super(view);
             }
         }
@@ -225,28 +280,29 @@ public class SongListFragment extends Fragment {
 
         public SongRecyclerViewAdapter(List<Song> items) {
             mValues = items;
+            topViewOffset = topView == null ? 0 : 1;
         }
 
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            if (viewType == VIEW_ITEM) {
+            if (viewType == VIEW_SONG) {
                 View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item, parent, false);
-                final ViewHolder vh = new ViewHolder(view);
-                return vh;
-            } else {
+                return new SongViewHolder(view);
+            } else if (viewType == VIEW_PROG) {
                 View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_prog_item, parent, false);
-                final ProgViewHolder vh = new ProgViewHolder(view);
-                return vh;
+                return new OtherViewHolder(view);
+            } else {
+                return new OtherViewHolder(topView);
             }
         }
 
         @Override
         public void onBindViewHolder(final RecyclerView.ViewHolder h, final int position) {
-            if (h instanceof ProgViewHolder)
+            if (h instanceof OtherViewHolder)
                 return;
 
-            ViewHolder holder = (ViewHolder)h;
-            final Song s = mValues.get(position);
+            SongViewHolder holder = (SongViewHolder)h;
+            final Song s = mValues.get(position - topViewOffset);
             holder.curSong = s;
             if (s == null) return;
 
@@ -319,14 +375,16 @@ public class SongListFragment extends Fragment {
 
         @Override
         public int getItemViewType(int position) {
-            if (position >= mValues.size()) {
+            if (position == 0 && topView != null) {
+                return VIEW_TOP;
+            } else if (position >= mValues.size() + topViewOffset) {
                 return VIEW_PROG;
             } else {
-                return VIEW_ITEM;
+                return VIEW_SONG;
             }
         }
 
-        private void updateStatus(final ViewHolder holder) {
+        private void updateStatus(final SongViewHolder holder) {
             Downloads.Status status = Downloads.getStatus(holder.curSong.id);
             switch (status) {
                 case None:
@@ -348,22 +406,22 @@ public class SongListFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            return mValues.size() + (loadingItemVisible ? 1 : 0);
+            return mValues.size() + (loadingItemVisible ? 1 : 0) + topViewOffset;
         }
 
         @Override
         public void onViewAttachedToWindow(RecyclerView.ViewHolder holder) {
             super.onViewAttachedToWindow(holder);
-            if (holder instanceof ViewHolder) {
-                Downloads.addListener((ViewHolder)holder);
+            if (holder instanceof SongViewHolder) {
+                Downloads.addListener((SongViewHolder)holder);
             }
         }
 
         @Override
         public void onViewDetachedFromWindow(RecyclerView.ViewHolder holder) {
             super.onViewDetachedFromWindow(holder);
-            if (holder instanceof ViewHolder) {
-                Downloads.removeListener((ViewHolder)holder);
+            if (holder instanceof SongViewHolder) {
+                Downloads.removeListener((SongViewHolder)holder);
             }
         }
     }

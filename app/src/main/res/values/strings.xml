@@ -44,4 +44,8 @@
     <string name="detail_comments">Comments:</string>
     <string name="detail_loadmore">Load more</string>
     <string name="detail_nocomments">No comments</string>
+
+    <string name="user_posts">Posts</string>
+    <string name="user_clicks">Clicks</string>
+    <string name="user_comments">Comments</string>
 </resources>
