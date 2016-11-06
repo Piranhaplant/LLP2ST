@@ -95,6 +95,7 @@ public final class Login {
     }
 
     private static void loadLoginInfo(Context context) {
+        if (context == null) return;
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         cookie = prefs.getString("login_cookie", null);
         uid = prefs.getString("login_uid", null);
@@ -103,6 +104,7 @@ public final class Login {
     }
 
     private static void saveLoginInfo(Context context) {
+        if (context == null) return;
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor edit = prefs.edit();
         edit.putString("login_cookie", cookie);
