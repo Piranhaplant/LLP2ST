@@ -40,6 +40,7 @@ public class MainDataFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         callbacks = (DataCallbacks)context;
+        new LoginTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     @Override
@@ -51,7 +52,6 @@ public class MainDataFragment extends Fragment {
     public void LoadCategories() {
         if (categories == null) {
             new CategoryTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-            new LoginTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else if (callbacks != null) {
             callbacks.CategoriesLoaded(new ErrorOr<>(categories));
         }
