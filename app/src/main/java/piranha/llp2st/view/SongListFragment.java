@@ -52,8 +52,8 @@ public class SongListFragment extends Fragment {
 
     private int topViewResource = -1;
     private View topView;
-    private boolean waitingForCallbackRefresh;
-    private boolean callbackRefreshDone;
+    private boolean waitingForCallbackRefresh = false;
+    private boolean callbackRefreshDone = false;
 
     public void setSongSource(SongListSource source) {
         this.source = source;
@@ -161,6 +161,7 @@ public class SongListFragment extends Fragment {
 
         protected void onPostExecute(List<Song> result) {
             rv.setAdapter(new SongRecyclerViewAdapter(result));
+            rv.setVisibility(View.VISIBLE);
             progressBar.setVisibility(View.GONE);
             swipeRefresh.setVisibility(View.VISIBLE);
             if (result.size() == 0) {
