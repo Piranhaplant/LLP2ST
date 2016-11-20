@@ -17,10 +17,7 @@ public final class Util {
     public static String download(String url) throws IOException {
         URL u = new URL(url);
         HttpURLConnection conn = (HttpURLConnection)u.openConnection();
-        if (Login.isLoggedIn()) {
-            conn.setRequestProperty("Cookie", "UID=" + Login.uid);
-            conn.setRequestProperty("X-sign", getXSign(url));
-        }
+        Login.appendConnectionParams(conn, url);
         conn.setRequestMethod("GET");
 
         InputStream is;
@@ -43,10 +40,7 @@ public final class Util {
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("Content-Length", String.valueOf(data.length()));
-        if (Login.isLoggedIn()) {
-            conn.setRequestProperty("Cookie", "UID=" + Login.uid);
-            conn.setRequestProperty("X-sign", getXSign(url));
-        }
+        Login.appendConnectionParams(conn, url);
         OutputStream os = conn.getOutputStream();
         os.write(data.getBytes());
 
@@ -61,15 +55,6 @@ public final class Util {
 
         //android.util.Log.i("POST", url + " : " + data + " : " + result);
         return result;
-    }
-
-    private static String getXSign(String url) {
-        int qPos = url.indexOf("?");
-        if (qPos >= 0) {
-            String params = url.substring(qPos + 1);
-            return Login.getXSign(params);
-        }
-        return "";
     }
 
     public static String readFile(File f) throws IOException {

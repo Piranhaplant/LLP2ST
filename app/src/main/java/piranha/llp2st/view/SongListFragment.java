@@ -24,6 +24,7 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 
 import piranha.llp2st.R;
+import piranha.llp2st.data.Api;
 import piranha.llp2st.data.Downloads;
 import piranha.llp2st.data.Song;
 import piranha.llp2st.data.SongListSource;
@@ -361,7 +362,7 @@ public class SongListFragment extends Fragment {
             });
 
             Glide.with(holder.mImageView.getContext())
-                .load(Song.UploadPath + s.pictureUrl)
+                .load(Api.UPLOAD_URL + s.pictureUrl)
                 .centerCrop()
                 .into(holder.mImageView);
 

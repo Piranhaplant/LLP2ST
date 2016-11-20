@@ -50,9 +50,7 @@ public class ApiSongListSource extends SongListSource {
 
     private void loadSongs() {
         String url = apiUrl + "&offset=" + songs.size();
-        if (Login.isLoggedIn()) {
-            url += "&" + Login.getURLParams();
-        }
+        url = Login.appendURLParams(url);
         try {
             JSONObject j = new JSONObject(Util.download(url));
             LLPException.ThrowIfError(j);

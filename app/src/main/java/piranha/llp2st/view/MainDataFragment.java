@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import piranha.llp2st.Util;
+import piranha.llp2st.data.Api;
 import piranha.llp2st.data.Category;
 import piranha.llp2st.data.Login;
 import piranha.llp2st.exception.ErrorOr;
@@ -66,7 +67,7 @@ public class MainDataFragment extends Fragment {
         @Override
         protected ErrorOr<List<Category>> doInBackground(Void... voids) {
             try {
-                JSONObject j = new JSONObject(Util.download("https://m.tianyi9.com/API/getcategory"));
+                JSONObject j = new JSONObject(Util.download(Api.URL + "getcategory"));
                 LLPException.ThrowIfError(j);
                 List<Category> categories = new ArrayList<>();
                 JSONArray items = j.getJSONObject("content").getJSONArray("items");
@@ -114,7 +115,7 @@ public class MainDataFragment extends Fragment {
         @Override
         protected ErrorOr<String> doInBackground(Void... voids) {
             try {
-                JSONObject j = new JSONObject(Util.download("https://m.tianyi9.com/API/getRandomLive"));
+                JSONObject j = new JSONObject(Util.download(Api.URL + "getRandomLive"));
                 LLPException.ThrowIfError(j);
                 return new ErrorOr<>(j.getJSONObject("content").getString("live_id"));
             } catch (Exception e) {

@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 
 import piranha.llp2st.R;
+import piranha.llp2st.data.Api;
 import piranha.llp2st.data.SongListSource;
 import piranha.llp2st.data.User;
 import piranha.llp2st.exception.ErrorOr;
@@ -136,7 +137,7 @@ public class UserActivity extends BaseActivity implements UserDataFragment.DataC
 
         User u = user.data;
         getSupportActionBar().setTitle(u.name);
-        Glide.with(this).load(SongDetailActivity.getPictureUrl(u.avatar)).centerCrop().into((ImageView) userView.findViewById(R.id.avatar));
+        Glide.with(this).load(Api.getPictureUrl(u.avatar)).centerCrop().into((ImageView) userView.findViewById(R.id.avatar));
         ((TextView)userView.findViewById(R.id.user_posts)).setText(Integer.toString(u.posts));
         ((TextView)userView.findViewById(R.id.user_clicks)).setText(Integer.toString(u.clicks));
         ((TextView)userView.findViewById(R.id.user_comments)).setText(Integer.toString(u.comments));

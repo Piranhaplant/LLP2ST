@@ -16,27 +16,27 @@ public abstract class SongListSource {
     public abstract SongListSource clone();
 
     public static SongListSource getNewSongListSource() {
-        return new ApiSongListSource("https://m.tianyi9.com/API/getlivelist?type=public", "New");
+        return new ApiSongListSource(Api.URL + "getlivelist?type=public", "New");
     }
 
     public static SongListSource getFeaturedSongListSource() {
-        return new ApiSongListSource("https://m.tianyi9.com/API/getlivelist?type=featured", "Featured");
+        return new ApiSongListSource(Api.URL + "getlivelist?type=featured", "Featured");
     }
 
     public static SongListSource getCategorySongListSource(String category, int id) {
-        return new ApiSongListSource("https://m.tianyi9.com/API/getlivelist?type=category&category=" + id, category);
+        return new ApiSongListSource(Api.URL + "getlivelist?type=category&category=" + id, category);
+    }
+
+    public static SongListSource getUserSongListSource(int uid) {
+        return new ApiSongListSource(Api.URL + "getlivelist?type=user_public&uid=" + uid, "");
     }
 
     public static SongListSource getSearchSongListSource(String search) {
         try {
-            return new ApiSongListSource("https://m.tianyi9.com/API/search?keyword=" + URLEncoder.encode(search, "UTF-8"), "Search");
+            return new ApiSongListSource(Api.URL + "search?keyword=" + URLEncoder.encode(search, "UTF-8"), "Search");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
             return null;
         }
-    }
-
-    public static SongListSource getUserSongListSource(int uid) {
-        return new ApiSongListSource("https://m.tianyi9.com/API/getlivelist?type=user_public&uid=" + Integer.toString(uid), "");
     }
 }

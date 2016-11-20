@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
@@ -27,7 +28,7 @@ public final class Login {
         JSONObject params = new JSONObject();
         params.put("username", user);
         params.put("password", hashPassword(password));
-        JSONObject json = new JSONObject(Util.post("https://m.tianyi9.com/API/login", params.toString()));
+        JSONObject json = new JSONObject(Util.post(Api.URL + "login", params.toString()));
         LLPException.ThrowIfError(json);
 
         JSONObject content = json.getJSONObject("content");
@@ -50,18 +51,37 @@ public final class Login {
         return cookie != null;
     }
 
-    public static String getURLParams() {
-        return "logincookie=" + cookie
-            + "&timestamp=" + String.valueOf(new Date().getTime());
+    public static String appendURLParams(String url) {
+        if (isLoggedIn()) {
+            String params = "logincookie=" + cookie
+                          + "&timestamp=" + String.valueOf(new Date().getTime());
+            if (url.contains("?")) {
+                return url + "&" + params;
+            } else {
+                return url + "?" + params;
+            }
+        }
+        return url;
     }
 
-    public static String getXSign(String params) {
-        try {
-            return sha256(params + token);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "";
+    public static void appendConnectionParams(HttpURLConnection conn, String url) {
+        if (isLoggedIn()) {
+            conn.setRequestProperty("Cookie", "UID=" + uid);
+            conn.setRequestProperty("X-sign", getXSign(url));
         }
+    }
+
+    private static String getXSign(String url) {
+        int qPos = url.indexOf("?");
+        if (qPos >= 0) {
+            String params = url.substring(qPos + 1);
+            try {
+                return sha256(params + token);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return "";
     }
 
     public static void checkLogin(Context context) {
@@ -69,7 +89,7 @@ public final class Login {
         if (!isLoggedIn())
             return;
         try {
-            String result = Util.download("https://m.tianyi9.com/API/checkLogin?" + getURLParams());
+            String result = Util.download(appendURLParams(Api.URL + "checkLogin"));
             JSONObject json = new JSONObject(result);
             if (!json.getBoolean("succeed"))
                 logout(context);

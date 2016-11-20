@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import org.json.JSONObject;
 
 import piranha.llp2st.Util;
+import piranha.llp2st.data.Api;
 import piranha.llp2st.data.Login;
 import piranha.llp2st.data.User;
 import piranha.llp2st.exception.ErrorOr;
@@ -54,10 +55,8 @@ public class UserDataFragment extends Fragment {
         protected ErrorOr<User> doInBackground(Integer... integers) {
             Integer id = integers[0];
             try {
-                String url = "https://m.tianyi9.com/API/user_info?uid=" + Integer.toString(id);
-                if (Login.isLoggedIn()) {
-                    url += "&" + Login.getURLParams();
-                }
+                String url = Api.URL + "user_info?uid=" + Integer.toString(id);
+                url = Login.appendURLParams(url);
                 JSONObject j = new JSONObject(Util.download(url));
                 LLPException.ThrowIfError(j);
                 JSONObject content = j.getJSONObject("content");

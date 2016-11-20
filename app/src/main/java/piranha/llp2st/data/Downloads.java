@@ -87,7 +87,7 @@ public final class Downloads {
             double leadIn = Double.valueOf(prefs.getString("pref_leadin", "2"));
             double timingOffset = Double.valueOf(prefs.getString("pref_offset", "0.1"));
 
-            JSONObject map = new JSONObject(Util.download(Song.UploadPath + s.mapUrl));
+            JSONObject map = new JSONObject(Util.download(Api.UPLOAD_URL + s.mapUrl));
             JSONObject sifTrainMap = convertToSifTrain(map, s.name, s.difficulty, leadIn, timingOffset);
 
             File f = new File(Environment.getExternalStorageDirectory(), dataFilesDirectory + id + ".rs");
@@ -96,7 +96,7 @@ public final class Downloads {
             o.write(sifTrainMap.toString());
             o.close();
 
-            InputStream i = new URL(Song.UploadPath + s.audioUrl).openStream();
+            InputStream i = new URL(Api.UPLOAD_URL + s.audioUrl).openStream();
             f = new File(Environment.getExternalStorageDirectory(), soundFilesDirectory + id + ".mp3");
             f.getParentFile().mkdirs();
             FileOutputStream fo = new FileOutputStream(f);
@@ -144,7 +144,7 @@ public final class Downloads {
         double leadIn = Double.valueOf(prefs.getString("pref_leadin", "2"));
         double timingOffset = Double.valueOf(prefs.getString("pref_offset", "0.1"));
 
-        JSONObject map = new JSONObject(Util.download(Song.UploadPath + s.mapUrl));
+        JSONObject map = new JSONObject(Util.download(Api.UPLOAD_URL + s.mapUrl));
         JSONObject sifTrainMap = convertToSifTrain(map, s.name, s.difficulty, leadIn, timingOffset);
 
         File f = new File(Environment.getExternalStorageDirectory(), dataFilesDirectory + id + ".rs");

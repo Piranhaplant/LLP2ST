@@ -24,10 +24,8 @@ public final class SongInfo {
             return s;
         }
         // Otherwise, download the info
-        String url = "https://m.tianyi9.com/API/getlive?live_id=" + id;
-        if (Login.isLoggedIn()) {
-            url += "&" + Login.getURLParams();
-        }
+        String url = Api.URL + "getlive?live_id=" + id;
+        url = Login.appendURLParams(url);
         String text = Util.download(url);
         if (text.equals("Not found")) {
             throw new LLPException("Live not found", -1);

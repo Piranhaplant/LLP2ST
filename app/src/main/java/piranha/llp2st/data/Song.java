@@ -5,7 +5,6 @@ import org.json.JSONObject;
 public class Song {
 
     public static final String KeyId = "live_id";
-    public static final String UploadPath = "https://m.tianyi9.com/upload/";
 
     /**
      * Sets whether all of the song data is available. Song info loaded from a live

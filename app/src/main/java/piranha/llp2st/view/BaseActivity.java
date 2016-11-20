@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import piranha.llp2st.R;
+import piranha.llp2st.data.Api;
 import piranha.llp2st.data.Downloads;
 import piranha.llp2st.data.Song;
 import piranha.llp2st.data.SongInfo;
@@ -171,7 +172,7 @@ public abstract class BaseActivity extends AppCompatActivity implements AudioMan
                     player.setDataSource(Downloads.getLocalAudioFileName(ids[0]));
                 } else {
                     s = SongInfo.get(ids[0], true);
-                    player.setDataSource(Song.UploadPath + s.audioUrl);
+                    player.setDataSource(Api.UPLOAD_URL + s.audioUrl);
                 }
                 player.prepare();
 
@@ -227,7 +228,7 @@ public abstract class BaseActivity extends AppCompatActivity implements AudioMan
         n.notify(NOTIFICATION_ID, noti.build());
 
         Glide.with(curActivity)
-                .load(Song.UploadPath + s.pictureUrl)
+                .load(Api.UPLOAD_URL + s.pictureUrl)
                 .asBitmap()
                 .into(new SimpleTarget<Bitmap>() {
                     @Override

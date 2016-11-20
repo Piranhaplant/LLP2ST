@@ -22,10 +22,8 @@ public class CommentList {
     }
 
     public void loadComments() throws IOException, JSONException, LLPException {
-        String url = "https://m.tianyi9.com/API/getcomments?live_id=" + songId + "&offset=" + comments.size();
-        if (Login.isLoggedIn()) {
-            url += "&" + Login.getURLParams();
-        }
+        String url = Api.URL + "getcomments?live_id=" + songId + "&offset=" + comments.size();
+        url = Login.appendURLParams(url);
         JSONObject j = new JSONObject(Util.download(url));
         LLPException.ThrowIfError(j);
         JSONObject content = j.getJSONObject("content");

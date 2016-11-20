@@ -18,6 +18,7 @@ import com.bumptech.glide.Glide;
 import mbanje.kurt.fabbutton.FabButton;
 import piranha.llp2st.R;
 import piranha.llp2st.Util;
+import piranha.llp2st.data.Api;
 import piranha.llp2st.data.Comment;
 import piranha.llp2st.data.CommentList;
 import piranha.llp2st.data.Downloads;
@@ -213,7 +214,7 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
         final Song song = esong.data;
         collapsingToolbar.setTitle(song.name);
 
-        Glide.with(SongDetailActivity.this).load(Song.UploadPath + song.pictureUrl).centerCrop().into(imageView);
+        Glide.with(SongDetailActivity.this).load(Api.UPLOAD_URL + song.pictureUrl).centerCrop().into(imageView);
 
         songInfo.setText(Html.fromHtml(
             "<b>Title:</b> " + song.name + "<br/>" +
@@ -226,7 +227,7 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
                 "<b>Author:</b> " + song.user.name + "<br/>" +
                         "<b>Post count:</b> " + song.user.posts));
 
-        Glide.with(SongDetailActivity.this).load(getPictureUrl(song.user.avatar)).centerCrop().into(authorPicture);
+        Glide.with(SongDetailActivity.this).load(Api.getPictureUrl(song.user.avatar)).centerCrop().into(authorPicture);
 
         userCard.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -277,7 +278,7 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
 
         content.setText(comment.content);
         header.setText(comment.user.name + " at " + comment.date);
-        Glide.with(this).load(getPictureUrl(comment.user.avatar)).centerCrop().into(picture);
+        Glide.with(this).load(Api.getPictureUrl(comment.user.avatar)).centerCrop().into(picture);
         v.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -296,14 +297,5 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
         dataFragment.LoadMoreComments();
         commentProgress.setVisibility(View.VISIBLE);
         commentMore.setVisibility(View.GONE);
-    }
-
-
-    public static String getPictureUrl(String url) {
-        if (url == null || url.equals("")) {
-            return "https://m.tianyi9.com/images/default_avatar.jpg";
-        } else {
-            return Song.UploadPath + url;
-        }
     }
 }
