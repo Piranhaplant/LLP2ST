@@ -22,7 +22,6 @@ public class MainDataFragment extends Fragment {
 
     interface DataCallbacks {
         void CategoriesLoaded(ErrorOr<List<Category>> categories);
-        void RandomSongLoaded(ErrorOr<String> id);
         void LoginLoaded();
     }
 
@@ -56,10 +55,6 @@ public class MainDataFragment extends Fragment {
         } else if (callbacks != null) {
             callbacks.CategoriesLoaded(new ErrorOr<>(categories));
         }
-    }
-
-    public void LoadRandomSong() {
-        new RandomTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     class CategoryTask extends AsyncTask<Void, Void, ErrorOr<List<Category>>> {
@@ -106,28 +101,6 @@ public class MainDataFragment extends Fragment {
         protected void onPostExecute(Void result) {
             if (callbacks != null) {
                 callbacks.LoginLoaded();
-            }
-        }
-    }
-
-    class RandomTask extends AsyncTask<Void, Void, ErrorOr<String>> {
-
-        @Override
-        protected ErrorOr<String> doInBackground(Void... voids) {
-            try {
-                JSONObject j = new JSONObject(Util.download(Api.URL + "getRandomLive"));
-                LLPException.ThrowIfError(j);
-                return new ErrorOr<>(j.getJSONObject("content").getString("live_id"));
-            } catch (Exception e) {
-                e.printStackTrace();
-                return ErrorOr.wrap(e);
-            }
-        }
-
-        @Override
-        protected void onPostExecute(ErrorOr<String> result) {
-            if (callbacks != null) {
-                callbacks.RandomSongLoaded(result);
             }
         }
     }

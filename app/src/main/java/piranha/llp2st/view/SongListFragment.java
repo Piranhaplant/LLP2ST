@@ -165,9 +165,7 @@ public class SongListFragment extends Fragment {
             rv.setVisibility(View.VISIBLE);
             progressBar.setVisibility(View.GONE);
             swipeRefresh.setVisibility(View.VISIBLE);
-            if (result.size() == 0) {
-                noResults.setVisibility(View.VISIBLE);
-            }
+            noResults.setVisibility(result.size() == 0 ? View.VISIBLE : View.GONE);
             if (!waitingForCallbackRefresh || callbackRefreshDone) {
                 swipeRefresh.setRefreshing(false);
             }

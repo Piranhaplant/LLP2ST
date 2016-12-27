@@ -5,16 +5,22 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
+import org.json.JSONObject;
+
+import piranha.llp2st.Util;
+import piranha.llp2st.data.Api;
 import piranha.llp2st.data.CommentList;
 import piranha.llp2st.data.Song;
 import piranha.llp2st.data.SongInfo;
 import piranha.llp2st.exception.ErrorOr;
+import piranha.llp2st.exception.LLPException;
 
 public class SongDetailDataFragment extends Fragment {
 
     interface DataCallbacks {
         void InfoLoaded(ErrorOr<Song> song);
         void CommentsLoaded(ErrorOr<CommentList> comments);
+        void RandomSongLoaded(ErrorOr<String> id);
     }
 
     private DataCallbacks callbacks;
@@ -51,6 +57,9 @@ public class SongDetailDataFragment extends Fragment {
     }
     public void LoadMoreComments() {
         new CommentTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+    public void LoadRandomSong() {
+        new RandomTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     class InfoTask extends AsyncTask<String, Void, ErrorOr<Song>> {
@@ -95,6 +104,28 @@ public class SongDetailDataFragment extends Fragment {
             errComments = result;
             if (callbacks != null) {
                 callbacks.CommentsLoaded(result);
+            }
+        }
+    }
+
+    class RandomTask extends AsyncTask<Void, Void, ErrorOr<String>> {
+
+        @Override
+        protected ErrorOr<String> doInBackground(Void... voids) {
+            try {
+                JSONObject j = new JSONObject(Util.download(Api.URL + "getRandomLive"));
+                LLPException.ThrowIfError(j);
+                return new ErrorOr<>(j.getJSONObject("content").getString("live_id"));
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ErrorOr.wrap(e);
+            }
+        }
+
+        @Override
+        protected void onPostExecute(ErrorOr<String> result) {
+            if (callbacks != null) {
+                callbacks.RandomSongLoaded(result);
             }
         }
     }

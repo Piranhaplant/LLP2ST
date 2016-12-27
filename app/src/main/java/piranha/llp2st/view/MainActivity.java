@@ -50,7 +50,6 @@ public class MainActivity extends BaseActivity implements MainDataFragment.DataC
     private MenuItem stopButton;
     private MenuItem loginButton;
     private MenuItem logoutButton;
-    private boolean loadingRandom = false;
     private boolean loaded = false;
 
     @Override
@@ -149,9 +148,9 @@ public class MainActivity extends BaseActivity implements MainDataFragment.DataC
                 }
                 return true;
             case R.id.action_random:
-                if (loadingRandom) return true;
-                loadingRandom = true;
-                dataFragment.LoadRandomSong();
+                Intent intent = new Intent(this, SongDetailActivity.class);
+                intent.putExtra(SongDetailActivity.EXTRA_ID, SongDetailActivity.RANDOM_ID);
+                startActivity(intent);
                 return true;
             case R.id.action_settings:
                 startActivity(new Intent(this, SettingsActivity.class));
@@ -302,20 +301,6 @@ public class MainActivity extends BaseActivity implements MainDataFragment.DataC
         tabLayout = (TabLayout)findViewById(R.id.tabs);
         tabLayout.setVisibility(View.VISIBLE);
         tabLayout.setupWithViewPager(viewPager);
-    }
-
-    @Override
-    public void RandomSongLoaded(ErrorOr<String> id) {
-        loadingRandom = false;
-        if (id.isError()) {
-            Toast.makeText(this, "Error getting random song: " + id.error.getMessage(), Toast.LENGTH_LONG).show();
-            return;
-        }
-        Context context = MainActivity.this;
-        Intent intent = new Intent(context, SongDetailActivity.class);
-        intent.putExtra(SongDetailActivity.EXTRA_ID, id.data);
-
-        context.startActivity(intent);
     }
 
     @Override

@@ -29,6 +29,7 @@ import piranha.llp2st.exception.LLPException;
 public class SongDetailActivity extends BaseActivity implements SongDetailDataFragment.DataCallbacks, Downloads.StatusChangedListener {
 
     public static final String EXTRA_ID = "live_id";
+    public static final String RANDOM_ID = "random";
 
     private SongDetailDataFragment dataFragment;
     private static final String FRAGMENT_DATA = "data";
@@ -46,6 +47,13 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
     private View commentProgress;
     private View commentNone;
 
+    private CollapsingToolbarLayout collapsingToolbar;
+    private TextView songInfo;
+    private TextView authorInfo;
+    private View userCard;
+    private ImageView backdrop;
+    private ImageView authorPicture;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,28 +67,13 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         downloadButton = (FabButton)findViewById(R.id.detail_download);
-        downloadButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (Downloads.getStatus(id) == Downloads.Status.Done) {
-                    Downloads.showDeletePrompt(id, view.getContext());
-                } else {
-                    Downloads.downloadAsync(id, view.getContext());
-                }
-            }
-        });
-
         playButton = (FabButton)findViewById(R.id.detail_play);
-        playButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (BaseActivity.isPlaying()) {
-                    BaseActivity.Stop();
-                } else {
-                    BaseActivity.Play(id);
-                }
-            }
-        });
+        collapsingToolbar = (CollapsingToolbarLayout)findViewById(R.id.collapsing_toolbar);
+        songInfo = (TextView)findViewById(R.id.detail_songInfo);
+        authorInfo = (TextView)findViewById(R.id.detail_authorInfo);
+        userCard = findViewById(R.id.detail_user_card);
+        backdrop = (ImageView)findViewById(R.id.backdrop);
+        authorPicture = (ImageView)findViewById(R.id.detail_authorPicture);
         commentList = (LinearLayout)findViewById(R.id.comment_list);
         commentMore = (TextView)findViewById(R.id.comments_more);
         commentProgress = findViewById(R.id.comment_progress);
@@ -103,12 +96,10 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
             fm.beginTransaction().add(dataFragment, FRAGMENT_DATA).commit();
         }
 
-        dataFragment.LoadInfo(id);
-        comments = dataFragment.GetComments();
-        if (comments == null) {
-            dataFragment.LoadComments(id);
+        if (id.equals(RANDOM_ID)) {
+            dataFragment.LoadRandomSong();
         } else {
-            ShowComments();
+            LoadId();
         }
     }
 
@@ -127,7 +118,7 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
     @Override
     protected void onResume() {
         super.onResume();
-        if (failed) {
+        if (failed && !id.equals(RANDOM_ID)) {
             comments = null;
             dataFragment.LoadInfo(id);
         }
@@ -176,33 +167,9 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
 
     @Override
     public void InfoLoaded(final ErrorOr<Song> esong) {
-        CollapsingToolbarLayout collapsingToolbar = (CollapsingToolbarLayout)findViewById(R.id.collapsing_toolbar);
-        TextView songInfo = (TextView)findViewById(R.id.detail_songInfo);
-        TextView authorInfo = (TextView)findViewById(R.id.detail_authorInfo);
-        View userCard = findViewById(R.id.detail_user_card);
-        final ImageView imageView = (ImageView)findViewById(R.id.backdrop);
-        final ImageView authorPicture = (ImageView)findViewById(R.id.detail_authorPicture);
-
         findViewById(R.id.detail_area).setVisibility(View.VISIBLE);
         if (esong.isError()) {
-            failed = true;
-            collapsingToolbar.setTitle(getResources().getString(R.string.error_detail_title));
-            songInfo.setText(R.string.error_detail);
-            if (esong.error instanceof LLPException) {
-                LLPException error = (LLPException)esong.error;
-                if (error.errcode == LLPException.ERRCODE_NEEDLOGIN) {
-                    authorInfo.setText(R.string.error_detail_signin);
-                    authorPicture.setBackgroundResource(R.drawable.ic_lock_black);
-                    userCard.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            startActivity(new Intent(SongDetailActivity.this, LoginActivity.class));
-                        }
-                    });
-                    return;
-                }
-            }
-            authorInfo.setText(esong.error.getMessage());
+            ShowError(esong.error);
             return;
         }
 
@@ -214,7 +181,7 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
         final Song song = esong.data;
         collapsingToolbar.setTitle(song.name);
 
-        Glide.with(SongDetailActivity.this).load(Api.UPLOAD_URL + song.pictureUrl).centerCrop().into(imageView);
+        Glide.with(SongDetailActivity.this).load(Api.UPLOAD_URL + song.pictureUrl).centerCrop().into(backdrop);
 
         songInfo.setText(Html.fromHtml(
             "<b>Title:</b> " + song.name + "<br/>" +
@@ -245,6 +212,47 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
     public void CommentsLoaded(ErrorOr<CommentList> comments) {
         this.comments = comments;
         ShowComments();
+    }
+
+    @Override
+    public void RandomSongLoaded(ErrorOr<String> id) {
+        if (id.isError()) {
+            findViewById(R.id.detail_area).setVisibility(View.VISIBLE);
+            ShowError(id.error);
+            return;
+        }
+        this.id = id.data;
+        LoadId();
+    }
+
+    private void LoadId() {
+        downloadButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (Downloads.getStatus(id) == Downloads.Status.Done) {
+                    Downloads.showDeletePrompt(id, view.getContext());
+                } else {
+                    Downloads.downloadAsync(id, view.getContext());
+                }
+            }
+        });
+        playButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (BaseActivity.isPlaying()) {
+                    BaseActivity.Stop();
+                } else {
+                    BaseActivity.Play(id);
+                }
+            }
+        });
+        dataFragment.LoadInfo(id);
+        comments = dataFragment.GetComments();
+        if (comments == null) {
+            dataFragment.LoadComments(id);
+        } else {
+            ShowComments();
+        }
     }
 
     private void ShowComments() {
@@ -297,5 +305,26 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
         dataFragment.LoadMoreComments();
         commentProgress.setVisibility(View.VISIBLE);
         commentMore.setVisibility(View.GONE);
+    }
+
+    private void ShowError(Exception error) {
+        failed = true;
+        collapsingToolbar.setTitle(getResources().getString(R.string.error_detail_title));
+        songInfo.setText(R.string.error_detail);
+        if (error instanceof LLPException) {
+            LLPException llperror = (LLPException)error;
+            if (llperror.errcode == LLPException.ERRCODE_NEEDLOGIN) {
+                authorInfo.setText(R.string.error_detail_signin);
+                authorPicture.setBackgroundResource(R.drawable.ic_lock_black);
+                userCard.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        startActivity(new Intent(SongDetailActivity.this, LoginActivity.class));
+                    }
+                });
+                return;
+            }
+        }
+        authorInfo.setText(error.getMessage());
     }
 }
