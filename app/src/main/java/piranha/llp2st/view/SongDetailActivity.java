@@ -1,5 +1,7 @@
 package piranha.llp2st.view;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,8 +9,10 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.view.ContextMenu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -17,7 +21,6 @@ import com.bumptech.glide.Glide;
 
 import mbanje.kurt.fabbutton.FabButton;
 import piranha.llp2st.R;
-import piranha.llp2st.Util;
 import piranha.llp2st.data.Api;
 import piranha.llp2st.data.Comment;
 import piranha.llp2st.data.CommentList;
@@ -36,6 +39,8 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
 
     private String id;
     private boolean failed = false;
+
+    private Song song;
     private ErrorOr<CommentList> comments;
     private int commentsShown = 0;
 
@@ -166,6 +171,35 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
     }
 
     @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        getMenuInflater().inflate(R.menu.menu_songinfo, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+
+        switch (item.getItemId()) {
+            case R.id.menu_copy_title:
+                clipboard.setPrimaryClip(ClipData.newPlainText("Title", song.name));
+                return true;
+            case R.id.menu_copy_artist:
+                clipboard.setPrimaryClip(ClipData.newPlainText("Artist", song.artist));
+                return true;
+            case R.id.menu_copy_description:
+                clipboard.setPrimaryClip(ClipData.newPlainText("Description", song.description));
+                return true;
+            case R.id.menu_copy_url:
+                clipboard.setPrimaryClip(ClipData.newPlainText("URL", Api.BASE_URL + "#/getlive?live_id=" + song.id));
+                return true;
+            default:
+                return super.onContextItemSelected(item);
+        }
+    }
+
+    @Override
     public void InfoLoaded(final ErrorOr<Song> esong) {
         findViewById(R.id.detail_area).setVisibility(View.VISIBLE);
         if (esong.isError()) {
@@ -178,21 +212,22 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
         downloadButton.setVisibility(View.VISIBLE);
         playButton.setVisibility(View.VISIBLE);
 
-        final Song song = esong.data;
+        song = esong.data;
         collapsingToolbar.setTitle(song.name);
 
         Glide.with(SongDetailActivity.this).load(Api.UPLOAD_URL + song.pictureUrl).centerCrop().into(backdrop);
 
         songInfo.setText(Html.fromHtml(
-            "<b>Title:</b> " + song.name + "<br/>" +
-            "<b>Artist:</b> " + song.artist + "<br/>" +
+            "<b>Title:</b> " + htmlEscape(song.name) + "<br/>" +
+            "<b>Artist:</b> " + htmlEscape(song.artist) + "<br/>" +
             "<b>Level:</b> " + song.difficulty + "<br/>" +
             "<b>Played:</b> " + song.clickCount + "<br/>" +
-            "<b>Description:</b> " + song.description));
+            "<b>Description:</b> " + htmlEscape(song.description)));
+        registerForContextMenu(songInfo);
 
         authorInfo.setText(Html.fromHtml(
-                "<b>Author:</b> " + song.user.name + "<br/>" +
-                        "<b>Post count:</b> " + song.user.posts));
+            "<b>Author:</b> " + htmlEscape(song.user.name) + "<br/>" +
+            "<b>Post count:</b> " + song.user.posts));
 
         Glide.with(SongDetailActivity.this).load(Api.getPictureUrl(song.user.avatar)).centerCrop().into(authorPicture);
 
@@ -206,6 +241,10 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
                 context.startActivity(intent);
             }
         });
+    }
+
+    private String htmlEscape(String s) {
+        return s.replace("<", "&lt;").replace(">", "&gt;");
     }
 
     @Override

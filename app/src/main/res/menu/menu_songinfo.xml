@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_copy_title"
+        android:title="@string/menu_copy_title" />
+
+    <item
+        android:id="@+id/menu_copy_artist"
+        android:title="@string/menu_copy_artist" />
+
+    <item
+        android:id="@+id/menu_copy_description"
+        android:title="@string/menu_copy_description" />
+
+    <item
+        android:id="@+id/menu_copy_url"
+        android:title="@string/menu_copy_url" />
+
+</menu>

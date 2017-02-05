@@ -2,7 +2,7 @@
     <string name="app_name">LLP2ST</string>
     <string name="search_title">Search</string>
     <string name="search_hint">Search for songs</string>
-    <string name="loading">Loading...</string>
+    <string name="loading">Loading…</string>
 
     <string name="error_main">Error loading LLPractice data. Tap to retry.</string>
     <string name="error_random">Error getting random song.</string>
@@ -33,11 +33,16 @@
     <string name="menu_redownload">Redownload beatmaps</string>
     <string name="menu_url">Open URL/ID</string>
 
+    <string name="menu_copy_title">Copy title</string>
+    <string name="menu_copy_artist">Copy artist</string>
+    <string name="menu_copy_description">Copy description</string>
+    <string name="menu_copy_url">Copy URL</string>
+
     <string name="list_viewdetails">Details</string>
     <string name="list_preview">Preview</string>
     <string name="list_noresults">No results</string>
 
-    <string name="login_username">Username or E-mail:</string>
+    <string name="login_username">Username or e-mail:</string>
     <string name="login_password">Password:</string>
     <string name="login_login">Login</string>
 
