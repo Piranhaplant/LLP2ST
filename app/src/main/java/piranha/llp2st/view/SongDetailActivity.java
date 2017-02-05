@@ -7,17 +7,21 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.view.ContextMenu;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+
+import java.util.List;
 
 import mbanje.kurt.fabbutton.FabButton;
 import piranha.llp2st.R;
@@ -42,12 +46,12 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
 
     private Song song;
     private ErrorOr<CommentList> comments;
-    private int commentsShown = 0;
+    private int selectedComment;
 
     private FabButton downloadButton;
     private FabButton playButton;
 
-    private LinearLayout commentList;
+    private RecyclerView commentList;
     private TextView commentMore;
     private View commentProgress;
     private View commentNone;
@@ -79,10 +83,14 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
         userCard = findViewById(R.id.detail_user_card);
         backdrop = (ImageView)findViewById(R.id.backdrop);
         authorPicture = (ImageView)findViewById(R.id.detail_authorPicture);
-        commentList = (LinearLayout)findViewById(R.id.comment_list);
+        commentList = (RecyclerView)findViewById(R.id.comment_list);
         commentMore = (TextView)findViewById(R.id.comments_more);
         commentProgress = findViewById(R.id.comment_progress);
         commentNone = findViewById(R.id.comment_none);
+
+        commentList.setNestedScrollingEnabled(false);
+        commentList.setLayoutManager(new LinearLayoutManager(this));
+        registerForContextMenu(commentList);
         commentMore.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -173,13 +181,16 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-        getMenuInflater().inflate(R.menu.menu_songinfo, menu);
+        // For some reason this method is called for the comment context menu too
+        // This fixes this items being shown on that menu too
+        if (menu.size() == 0) {
+            getMenuInflater().inflate(R.menu.menu_songinfo, menu);
+        }
     }
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        ClipboardManager clipboard = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
 
         switch (item.getItemId()) {
             case R.id.menu_copy_title:
@@ -193,6 +204,9 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
                 return true;
             case R.id.menu_copy_url:
                 clipboard.setPrimaryClip(ClipData.newPlainText("URL", Api.BASE_URL + "#/getlive?live_id=" + song.id));
+                return true;
+            case R.id.menu_copy_comment:
+                clipboard.setPrimaryClip(ClipData.newPlainText("Comment", comments.data.comments.get(selectedComment).content));
                 return true;
             default:
                 return super.onContextItemSelected(item);
@@ -310,34 +324,7 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
         commentMore.setVisibility(c.comments.size() < c.availableCount ? View.VISIBLE : View.GONE);
         commentNone.setVisibility(c.comments.size() == 0 ? View.VISIBLE : View.GONE);
 
-        for (int i = commentsShown; i < c.comments.size(); i++) {
-            CreateCommentView(c.comments.get(i));
-        }
-
-        commentsShown = c.comments.size();
-    }
-
-    private void CreateCommentView(final Comment comment) {
-        View v = View.inflate(this, R.layout.comment, null);
-        TextView content = (TextView)v.findViewById(R.id.comment_text);
-        TextView header = (TextView)v.findViewById(R.id.comment_header);
-        ImageView picture = (ImageView)v.findViewById(R.id.comment_picture);
-
-        content.setText(comment.content);
-        header.setText(comment.user.name + " at " + comment.date);
-        Glide.with(this).load(Api.getPictureUrl(comment.user.avatar)).centerCrop().into(picture);
-        v.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Context context = view.getContext();
-                Intent intent = new Intent(context, UserActivity.class);
-                intent.putExtra(UserActivity.EXTRA_USER_ID, comment.user.id);
-                intent.putExtra(UserActivity.EXTRA_USER_NAME, comment.user.name);
-                context.startActivity(intent);
-            }
-        });
-
-        commentList.addView(v);
+        commentList.setAdapter(new CommentRecyclerViewAdapter(c.comments));
     }
 
     private void LoadMoreComments() {
@@ -365,5 +352,82 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
             }
         }
         authorInfo.setText(error.getMessage());
+    }
+
+    public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+        private static final int VIEW_COMMENT = 0;
+
+        private List<Comment> comments;
+
+        public class CommentViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
+            public final View v;
+            public final ImageView picture;
+            public final TextView header;
+            public final TextView commentText;
+            public Comment comment;
+
+            public CommentViewHolder(View view) {
+                super(view);
+                v = view;
+                picture = (ImageView)view.findViewById(R.id.comment_picture);
+                header = (TextView)view.findViewById(R.id.comment_header);
+                commentText = (TextView)view.findViewById(R.id.comment_text);
+                v.setOnCreateContextMenuListener(this);
+            }
+
+            @Override
+            public void onCreateContextMenu(ContextMenu contextMenu, View view, ContextMenu.ContextMenuInfo contextMenuInfo) {
+                getMenuInflater().inflate(R.menu.menu_comment, contextMenu);
+            }
+        }
+
+        public CommentRecyclerViewAdapter(List<Comment> items) {
+            comments = items;
+        }
+
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.comment, parent, false);
+            return new CommentViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(final RecyclerView.ViewHolder h, final int position) {
+            final CommentViewHolder holder = (CommentViewHolder)h;
+            final Comment c = comments.get(position);
+            holder.comment = c;
+            if (c == null) return;
+
+            holder.commentText.setText(c.content);
+            holder.header.setText(c.user.name + " at " + c.date);
+            Glide.with(holder.picture.getContext()).load(Api.getPictureUrl(c.user.avatar)).centerCrop().into(holder.picture);
+            holder.v.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Context context = view.getContext();
+                    Intent intent = new Intent(context, UserActivity.class);
+                    intent.putExtra(UserActivity.EXTRA_USER_ID, c.user.id);
+                    intent.putExtra(UserActivity.EXTRA_USER_NAME, c.user.name);
+                    context.startActivity(intent);
+                }
+            });
+            holder.v.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    selectedComment = holder.getLayoutPosition();
+                    return false;
+                }
+            });
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            return VIEW_COMMENT;
+        }
+
+        @Override
+        public int getItemCount() {
+            return comments.size();
+        }
     }
 }

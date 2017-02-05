@@ -38,6 +38,8 @@
     <string name="menu_copy_description">Copy description</string>
     <string name="menu_copy_url">Copy URL</string>
 
+    <string name="menu_copy_comment">Copy comment</string>
+
     <string name="list_viewdetails">Details</string>
     <string name="list_preview">Preview</string>
     <string name="list_noresults">No results</string>

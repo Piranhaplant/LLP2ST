@@ -126,12 +126,10 @@
                     android:visibility="gone"
                     android:layout_marginLeft="@dimen/card_margin"/>
 
-                <LinearLayout
+                <android.support.v7.widget.RecyclerView
                     android:id="@+id/comment_list"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-                </LinearLayout>
+                    android:layout_height="wrap_content"/>
 
                 <TextView
                     android:id="@+id/comments_more"
