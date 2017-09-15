@@ -182,7 +182,7 @@ public class SongDetailActivity extends BaseActivity implements SongDetailDataFr
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         // For some reason this method is called for the comment context menu too
-        // This fixes this items being shown on that menu too
+        // This fixes these items being shown on that menu too
         if (menu.size() == 0) {
             getMenuInflater().inflate(R.menu.menu_songinfo, menu);
         }

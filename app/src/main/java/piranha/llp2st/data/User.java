@@ -22,7 +22,7 @@ public class User {
         if (json.isNull("avatar_path")) {
             avatar = null;
         } else {
-            avatar = json.optString("avatar_path");
+            avatar = json.optString("avatar_path").trim();
         }
         comments = json.optInt("total_comment");
         posts = json.optInt("post_count");
