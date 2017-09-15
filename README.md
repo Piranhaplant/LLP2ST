@@ -11,3 +11,5 @@ FabButton: https://github.com/ckurtm/FabButton<br />
 JSON: https://github.com/douglascrockford/JSON-java
 
 And some code from reddit is fun: https://github.com/talklittle/reddit-is-fun
+
+![Main screen](screenshots/main.png "Main screen") ![Song screen](screenshots/song.png "Song screen")
