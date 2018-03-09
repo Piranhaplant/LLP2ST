@@ -1,5 +1,6 @@
 package piranha.llp2st;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -13,7 +14,7 @@ import piranha.llp2st.data.Login;
 
 public final class Util {
 
-    public static String download(String url) throws IOException {
+    private static InputStream downloadStream(String url) throws IOException {
         URL u = new URL(url);
         HttpURLConnection conn = (HttpURLConnection)u.openConnection();
         Login.appendConnectionParams(conn, url);
@@ -21,15 +22,36 @@ public final class Util {
 
         InputStream is;
         if (conn.getResponseCode() >= 400)
-            is = conn.getErrorStream();
+            return conn.getErrorStream();
         else
-            is = conn.getInputStream();
+            return conn.getInputStream();
+    }
+
+    public static String download(String url) throws IOException {
+        InputStream is = downloadStream(url);
 
         String result = new Scanner(is, "UTF-8").useDelimiter("\\A").next();
         is.close();
 
         //android.util.Log.i("GET", url + " : " + result);
         return result;
+    }
+
+    public static byte[] downloadBytes(String url) throws IOException {
+        InputStream is = downloadStream(url);
+
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        byte[] data = new byte[16384];
+
+        while (true) {
+            int nRead = is.read(data, 0, data.length);
+            if (nRead == -1) break;
+            buffer.write(data, 0, nRead);
+        }
+
+        buffer.flush();
+
+        return buffer.toByteArray();
     }
 
     public static String post(String url, String data) throws IOException {

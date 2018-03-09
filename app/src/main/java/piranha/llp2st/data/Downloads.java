@@ -14,21 +14,26 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import SevenZip.Compression.LZMA.Decoder;
 import piranha.llp2st.R;
 import piranha.llp2st.Util;
 import piranha.llp2st.exception.ErrorOr;
 import piranha.llp2st.exception.LLPException;
+import piranha.llp2st.generated.MapProtos;
 import piranha.llp2st.view.BaseActivity;
 
 public final class Downloads {
@@ -87,7 +92,9 @@ public final class Downloads {
             double leadIn = Double.valueOf(prefs.getString("pref_leadin", "2"));
             double timingOffset = Double.valueOf(prefs.getString("pref_offset", "0.1"));
 
-            JSONObject map = new JSONObject(Util.download(Api.UPLOAD_URL + s.mapUrl));
+            byte[] mapCompressed = Util.downloadBytes(Api.UPLOAD_URL + s.mapUrl);
+            byte[] mapData = decompress(mapCompressed);
+            MapProtos.Map map = MapProtos.Map.parseFrom(mapData);
             JSONObject sifTrainMap = convertToSifTrain(map, s.name, s.difficulty, leadIn, timingOffset);
 
             File f = new File(Environment.getExternalStorageDirectory(), dataFilesDirectory + id + ".rs");
@@ -118,6 +125,48 @@ public final class Downloads {
         setStatus(id, Downloads.Status.Done);
     }
 
+    private static byte[] decompress(byte[] reversedData) throws IOException {
+        byte[] data = reverse(reversedData);
+
+        Decoder decoder = new SevenZip.Compression.LZMA.Decoder();
+        ByteArrayInputStream input = new ByteArrayInputStream(data);
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        // Read the decoder properties
+        byte[] properties = new byte[5];
+        input.read(properties);
+
+        // Read in the decompress file size.
+        byte [] fileLengthBytes = new byte[8];
+        input.read(fileLengthBytes);
+        long fileLength = bytesToLong(fileLengthBytes);
+
+        decoder.SetDecoderProperties(properties);
+        decoder.Code(input, output, fileLength);
+
+        output.flush();
+        output.close();
+
+        byte[] reversedResult = output.toByteArray();
+        byte[] result = reverse(reversedResult);
+        return result;
+    }
+
+    private static byte[] reverse(byte[] bytes) {
+        byte[] reversed = new byte[bytes.length];
+        for (int i = 0; i < reversed.length; i++) {
+            reversed[i] = bytes[bytes.length - i - 1];
+        }
+        return reversed;
+    }
+
+    private static long bytesToLong(byte[] bytes) {
+        ByteBuffer buffer = ByteBuffer.allocate(8);
+        buffer.put(bytes);
+        buffer.flip();
+        return buffer.getLong();
+    }
+
     public static void downloadAsync(final String id, final Context context) {
         new Thread(new Runnable() {
             @Override
@@ -144,7 +193,9 @@ public final class Downloads {
         double leadIn = Double.valueOf(prefs.getString("pref_leadin", "2"));
         double timingOffset = Double.valueOf(prefs.getString("pref_offset", "0.1"));
 
-        JSONObject map = new JSONObject(Util.download(Api.UPLOAD_URL + s.mapUrl));
+        byte[] mapCompressed = Util.downloadBytes(Api.UPLOAD_URL + s.mapUrl);
+        byte[] mapData = decompress(mapCompressed);
+        MapProtos.Map map = MapProtos.Map.parseFrom(mapData);
         JSONObject sifTrainMap = convertToSifTrain(map, s.name, s.difficulty, leadIn, timingOffset);
 
         File f = new File(Environment.getExternalStorageDirectory(), dataFilesDirectory + id + ".rs");
@@ -220,7 +271,7 @@ public final class Downloads {
         }
     }
 
-    private static JSONObject convertToSifTrain(JSONObject map, String name, int difficultyNum, double leadIn, double timeOffset) throws JSONException {
+    private static JSONObject convertToSifTrain(MapProtos.Map map, String name, int difficultyNum, double leadIn, double timeOffset) throws JSONException {
         JSONObject s = new JSONObject();
         s.put("song_name", name);
         s.put("difficulty", 4);
@@ -231,19 +282,17 @@ public final class Downloads {
         //s.put("difficulty_num", difficultyNum);
 
         JSONArray notes = new JSONArray();
-        JSONArray lanes = map.getJSONArray("lane");
-        for (int il = 0; il < lanes.length(); il++) {
-            JSONArray lane = lanes.getJSONArray(il);
-            for (int in = 0; in < lane.length(); in++) {
-                JSONObject note = lane.getJSONObject(in);
-                double time = note.getDouble("starttime") / 1000d;
+        for (int channelNum = 0; channelNum < map.getChannelsCount(); channelNum++) {
+            MapProtos.Map.Channel channel = map.getChannels(channelNum);
+            for (MapProtos.Map.Channel.Note note : channel.getNotesList()) {
+                double time = note.getStarttime() / 1000d;
                 int effect = 1;
                 double effectValue = 2d;
-                if (note.getBoolean("longnote")) {
+                if (note.getLongnote()) {
                     effect = 4;
-                    effectValue = note.getDouble("endtime") / 1000d - time;
+                    effectValue = note.getEndtime() / 1000d - time;
                 }
-                if (note.getBoolean("parallel")) {
+                if (note.getParallel()) {
                     effect += 16;
                 }
 
@@ -251,7 +300,7 @@ public final class Downloads {
                 newNote.put("timing_sec", time + timeOffset);
                 newNote.put("effect", effect);
                 newNote.put("effect_value", effectValue);
-                newNote.put("position", 9 - note.getInt("lane"));
+                newNote.put("position", 9 - channelNum);
                 notes.put(newNote);
             }
         }

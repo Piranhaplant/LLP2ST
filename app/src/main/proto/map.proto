@@ -1,0 +1,22 @@
+syntax = "proto2";
+
+package llpractice;
+
+option java_package = "piranha.llp2st.generated";
+option java_outer_classname = "MapProtos";
+
+message Map {
+	message Channel {
+		message Note {
+			optional int32 starttime = 1 [default = 0];
+			optional int32 endtime = 2 [default = 0];
+			optional bool longnote = 3 [default = false];
+			optional bool parallel = 4 [default = false];
+		}
+
+		repeated Note notes = 1;
+	}
+
+	repeated Channel channels = 1;
+	optional int32 speed = 2 [default = 0];
+}
